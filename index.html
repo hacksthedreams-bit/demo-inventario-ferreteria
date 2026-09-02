@@ -1,0 +1,2688 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Mi Ferretería — Control de Inventario</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --brand-primary:#0f2744;--brand-secondary:#1a3a5c;
+  --brand-accent:#e8682f;--brand-accent-hover:#d45a22;
+  --brand-accent-light:rgba(232,104,47,.08);--brand-accent-glow:rgba(232,104,47,.18);
+  --surface-page:#f0f2f5;--surface-card:#ffffff;--surface-card-hover:#fafbfc;
+  --surface-elevated:#ffffff;--surface-chart:#fcfcfb;--surface-input:#f7f8fa;--surface-badge:#f0f2f5;
+  --sidebar-top:#0f2744;--sidebar-bottom:#1b4472;
+  --text-primary:#0b1929;--text-secondary:#4a5568;--text-muted:#8896a6;
+  --text-inverse:#ffffff;--text-link:#2a78d6;
+  --border:#e2e8f0;--border-hover:#cbd5e0;--divider:#edf2f7;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 14px rgba(0,0,0,.07),0 2px 6px rgba(0,0,0,.04);
+  --shadow-lg:0 10px 40px rgba(0,0,0,.1),0 4px 12px rgba(0,0,0,.05);
+  --shadow-card:0 1px 3px rgba(0,0,0,.04);--shadow-card-hover:0 8px 25px rgba(0,0,0,.08);
+  --cat-mat:#5B7FA5;--cat-ace:#90A4AE;--cat-mad:#8D6E63;--cat-her:#42A5F5;
+  --cat-pin:#EC407A;--cat-ele:#FDD835;--cat-gas:#26C6DA;--cat-fij:#78909C;
+  --cat-seg:#EF5350;--cat-tec:#FF7043;--cat-pis:#BCAAA4;--cat-cer:#FFA726;
+  --cat-hog:#66BB6A;--cat-qui:#AB47BC;
+  --status-good:#0ca30c;--status-good-bg:rgba(12,163,12,.08);
+  --status-warning:#e69500;--status-warning-bg:rgba(230,149,0,.08);
+  --status-critical:#d03b3b;--status-critical-bg:rgba(208,59,59,.08);
+  --status-info:#2a78d6;--status-info-bg:rgba(42,120,214,.08);
+  --sidebar-w:260px;--header-h:68px;
+  --radius:12px;--radius-sm:8px;--radius-xs:6px;--radius-full:9999px;
+  --ease:cubic-bezier(.4,0,.2,1);--dur:0.2s;
+  font-family:'Inter',system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:14px;color:var(--text-primary);background:var(--surface-page);
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+}
+[data-theme="dark"]{
+  --brand-accent-light:rgba(232,104,47,.12);--brand-accent-glow:rgba(232,104,47,.22);
+  --surface-page:#0a1929;--surface-card:#132f4c;--surface-card-hover:#173a5e;
+  --surface-elevated:#1a3f60;--surface-chart:#132f4c;
+  --surface-input:#0d2137;--surface-badge:#0d2137;
+  --sidebar-top:#060e1a;--sidebar-bottom:#0d1f38;
+  --text-primary:#e2e8f0;--text-secondary:#a0aec0;--text-muted:#718096;
+  --text-inverse:#ffffff;--text-link:#63b3ed;
+  --border:#2d3748;--border-hover:#4a5568;--divider:#1e3451;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.3);--shadow-md:0 4px 14px rgba(0,0,0,.4);
+  --shadow-lg:0 10px 40px rgba(0,0,0,.5);
+  --shadow-card:0 1px 3px rgba(0,0,0,.2);--shadow-card-hover:0 8px 25px rgba(0,0,0,.35);
+  --cat-mat:#7B9FBF;--cat-ace:#B0BEC5;--cat-mad:#A1887F;--cat-her:#64B5F6;
+  --cat-pin:#F06292;--cat-ele:#FFEE58;--cat-gas:#4DD0E1;--cat-fij:#90A4AE;
+  --cat-seg:#EF5350;--cat-tec:#FF8A65;--cat-pis:#D7CCC8;--cat-cer:#FFB74D;
+  --cat-hog:#81C784;--cat-qui:#CE93D8;
+  --status-good-bg:rgba(12,163,12,.12);--status-warning-bg:rgba(230,149,0,.12);
+  --status-critical-bg:rgba(208,59,59,.12);--status-info-bg:rgba(42,120,214,.15);
+}
+
+body{display:flex;min-height:100vh;overflow-x:hidden;line-height:1.5}
+
+/* Sidebar */
+.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:linear-gradient(180deg,var(--sidebar-top),var(--sidebar-bottom));color:var(--text-inverse);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform .3s var(--ease);box-shadow:4px 0 24px rgba(0,0,0,.15)}
+.sidebar-brand{padding:24px 22px 20px;display:flex;align-items:center;gap:14px}
+.sidebar-logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--brand-accent),#f59e0b);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;flex-shrink:0;box-shadow:0 4px 12px rgba(232,104,47,.3)}
+.sidebar-brand-text h1{font-size:16px;font-weight:700;letter-spacing:-.02em;line-height:1.2}
+.sidebar-brand-text p{font-size:11px;opacity:.55;margin-top:1px;font-weight:400}
+.sidebar-section{padding:4px 14px;margin-top:8px}
+.sidebar-section-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);padding:8px 8px 6px}
+.sidebar-nav{flex:1;padding:0 14px;overflow-y:auto}
+.sidebar-nav button{display:flex;align-items:center;gap:11px;width:100%;padding:10px 12px;margin-bottom:2px;background:none;border:none;color:rgba(255,255,255,.7);font:inherit;font-size:13.5px;font-weight:450;cursor:pointer;border-radius:var(--radius-sm);transition:all .15s var(--ease);text-align:left}
+.sidebar-nav button:hover{background:rgba(255,255,255,.08);color:#fff}
+.sidebar-nav button.active{background:rgba(255,255,255,.12);color:#fff;font-weight:600;box-shadow:inset 3px 0 0 var(--brand-accent)}
+.sidebar-nav svg{width:19px;height:19px;flex-shrink:0;opacity:.7}
+.sidebar-nav .active svg{opacity:1}
+.nav-badge{margin-left:auto;background:var(--brand-accent);color:#fff;font-size:11px;font-weight:700;padding:1px 7px;border-radius:var(--radius-full);min-width:20px;text-align:center}
+.sidebar-footer{padding:16px 22px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px}
+.sidebar-footer-logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--brand-accent),#f59e0b);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
+.sidebar-footer-text{font-size:10.5px;opacity:.45;line-height:1.3}
+
+/* Main */
+.main{flex:1;margin-left:var(--sidebar-w);display:flex;flex-direction:column;min-height:100vh}
+.header{height:var(--header-h);background:var(--surface-card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:50;box-shadow:var(--shadow-sm)}
+.header-left{display:flex;align-items:center;gap:16px}
+.hamburger{display:none;background:none;border:none;cursor:pointer;padding:4px;color:var(--text-primary)}
+.hamburger svg{width:22px;height:22px}
+.header-left h2{font-size:18px;font-weight:700;letter-spacing:-.02em}
+.header-right{display:flex;align-items:center;gap:10px}
+.header-search{display:flex;align-items:center;gap:8px;background:var(--surface-input);border:1px solid var(--border);border-radius:var(--radius-full);padding:7px 14px;min-width:220px;transition:border-color .15s,box-shadow .15s}
+.header-search:focus-within{border-color:var(--brand-accent);box-shadow:0 0 0 3px var(--brand-accent-glow)}
+.header-search svg{width:15px;height:15px;color:var(--text-muted);flex-shrink:0}
+.header-search input{border:none;background:none;font:inherit;font-size:13px;color:var(--text-primary);outline:none;width:100%}
+.header-btn{width:38px;height:38px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-card);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-secondary);transition:all .15s var(--ease)}
+.header-btn:hover{border-color:var(--border-hover);background:var(--surface-card-hover)}
+.header-date{font-size:13px;color:var(--text-muted);white-space:nowrap}
+.content{flex:1;padding:28px 32px 48px}
+
+/* Save Indicator */
+.save-indicator{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--status-good);background:var(--status-good-bg);padding:4px 10px;border-radius:var(--radius-full);font-weight:500;transition:opacity .3s;white-space:nowrap}
+.save-indicator.saving{color:var(--status-warning);background:var(--status-warning-bg)}
+.save-indicator svg{width:13px;height:13px}
+
+/* Sale Button */
+.btn-sale{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:var(--radius-sm);font:inherit;font-size:13px;font-weight:600;cursor:pointer;border:none;background:var(--status-good);color:#fff;box-shadow:0 2px 8px rgba(12,163,12,.25);transition:all .15s var(--ease);white-space:nowrap}
+.btn-sale:hover{background:#0b8f0b;box-shadow:0 4px 14px rgba(12,163,12,.3);transform:translateY(-1px)}
+.btn-sale svg{width:15px;height:15px}
+
+/* Stat Tiles */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:26px}
+.stat-tile{background:var(--surface-card);border-radius:var(--radius);padding:22px 24px 18px;border:1px solid var(--border);box-shadow:var(--shadow-card);transition:box-shadow .2s var(--ease),transform .2s var(--ease);position:relative;overflow:hidden}
+.stat-tile:hover{box-shadow:var(--shadow-card-hover);transform:translateY(-2px)}
+.stat-tile.clickable{cursor:pointer}
+.stat-tile::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius) var(--radius) 0 0}
+.stat-tile:nth-child(1)::before{background:var(--cat-her)}
+.stat-tile:nth-child(2)::before{background:var(--status-good)}
+.stat-tile:nth-child(3)::before{background:var(--brand-accent)}
+.stat-tile:nth-child(4)::before{background:var(--status-critical)}
+.stat-tile .st-header{display:flex;align-items:flex-start;justify-content:space-between}
+.stat-tile .st-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stat-tile .label{font-size:12.5px;color:var(--text-muted);font-weight:500}
+.stat-tile .value{font-size:30px;font-weight:700;line-height:1.1;margin:8px 0 4px;letter-spacing:-.03em}
+.stat-tile .delta{font-size:12.5px;font-weight:600;display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:var(--radius-full)}
+.stat-tile .delta.good{color:var(--status-good);background:var(--status-good-bg)}
+.stat-tile .delta.warn{color:var(--status-warning);background:var(--status-warning-bg)}
+.stat-tile .delta.bad{color:var(--status-critical);background:var(--status-critical-bg)}
+.stat-tile .delta.info{color:var(--status-info);background:var(--status-info-bg)}
+
+/* Daily Summary Row */
+.daily-row{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:26px}
+.daily-tile{background:var(--surface-card);border-radius:var(--radius);padding:16px 20px;border:1px solid var(--border);box-shadow:var(--shadow-card);display:flex;align-items:center;gap:14px}
+.daily-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.daily-info .dl-label{font-size:11.5px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+.daily-info .dl-value{font-size:22px;font-weight:700;line-height:1.2;letter-spacing:-.02em;margin-top:2px}
+.daily-info .dl-sub{font-size:12px;color:var(--text-muted);margin-top:1px}
+
+/* Cards */
+.card{background:var(--surface-card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow-card);margin-bottom:22px;transition:box-shadow .2s var(--ease)}
+.card:hover{box-shadow:var(--shadow-md)}
+.card-header{padding:18px 24px;border-bottom:1px solid var(--divider);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.card-header h3{font-size:15px;font-weight:650;letter-spacing:-.01em}
+.card-header .subtitle{font-size:12.5px;color:var(--text-muted);font-weight:400}
+.card-body{padding:22px 24px}
+.card-body.flush{padding:0}
+
+/* Grid */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:22px}
+.grid-60-40{display:grid;grid-template-columns:3fr 2fr;gap:22px}
+
+/* Chart Toggle */
+.chart-toggle{display:flex;gap:4px}
+.ct-btn{width:32px;height:32px;border-radius:var(--radius-xs);border:1px solid var(--border);background:var(--surface-card);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .15s}
+.ct-btn:hover{color:var(--text-primary);border-color:var(--border-hover)}
+.ct-btn.active{background:var(--brand-accent-light);color:var(--brand-accent);border-color:var(--brand-accent)}
+.ct-btn svg{width:16px;height:16px}
+
+/* Donut */
+.donut-wrap{display:flex;align-items:center;gap:28px;flex-wrap:wrap;justify-content:center}
+.donut-svg{position:relative;width:220px;height:220px;flex-shrink:0}
+.donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.donut-center .dc-value{font-size:26px;font-weight:700;letter-spacing:-.03em}
+.donut-center .dc-label{font-size:12px;color:var(--text-muted);margin-top:2px}
+.donut-legend{display:flex;flex-direction:column;gap:8px;min-width:180px}
+.donut-legend-item{display:flex;align-items:center;gap:10px;font-size:13px;padding:6px 10px;border-radius:var(--radius-xs);transition:background .15s;cursor:default}
+.donut-legend-item:hover{background:var(--surface-input)}
+.donut-legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.donut-legend-name{flex:1;color:var(--text-secondary)}
+.donut-legend-val{font-weight:600;font-variant-numeric:tabular-nums}
+
+/* Horizontal Bar */
+.hbar-row{display:flex;align-items:center;gap:0;padding:5px 0;cursor:default;border-radius:var(--radius-xs);transition:background .12s}
+.hbar-row:hover{background:var(--surface-input)}
+.hbar-label{width:160px;min-width:160px;font-size:12.5px;color:var(--text-secondary);text-align:right;padding-right:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:450}
+.hbar-track{flex:1;height:10px;background:var(--surface-input);border-radius:5px;overflow:visible}
+.hbar-fill{height:100%;border-radius:5px;transition:width .6s var(--ease);min-width:2px}
+.hbar-val{margin-left:12px;font-size:12px;color:var(--text-secondary);font-weight:600;min-width:50px;font-variant-numeric:tabular-nums}
+
+/* Vertical Bar (Column) */
+.vbar-wrap{display:flex;align-items:flex-end;gap:6px;height:200px;padding-top:10px}
+.vbar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%}
+.vbar-bar-wrap{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center}
+.vbar-bar{width:100%;max-width:24px;border-radius:4px 4px 0 0;transition:height .6s var(--ease);cursor:pointer;min-height:2px}
+.vbar-bar:hover{opacity:.85}
+.vbar-label{font-size:9px;color:var(--text-muted);text-align:center;line-height:1.1;height:28px;display:flex;align-items:center;overflow:hidden;word-break:break-word}
+.vbar-val{font-size:10px;font-weight:600;color:var(--text-secondary)}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--radius-sm);font:inherit;font-size:13.5px;font-weight:550;cursor:pointer;border:none;transition:all .15s var(--ease);white-space:nowrap}
+.btn-primary{background:var(--brand-accent);color:#fff;box-shadow:0 2px 8px rgba(232,104,47,.25)}
+.btn-primary:hover{background:var(--brand-accent-hover);box-shadow:0 4px 14px rgba(232,104,47,.3);transform:translateY(-1px)}
+.btn-secondary{background:var(--surface-card);border:1px solid var(--border);color:var(--text-secondary)}
+.btn-secondary:hover{border-color:var(--border-hover);background:var(--surface-card-hover)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+.btn-icon{width:34px;height:34px;padding:0;border-radius:var(--radius-xs);display:inline-flex;align-items:center;justify-content:center;background:none;border:1px solid var(--border);color:var(--text-muted);cursor:pointer;transition:all .15s}
+.btn-icon:hover{background:var(--surface-input);color:var(--text-primary);border-color:var(--border-hover)}
+.btn-icon.danger:hover{background:var(--status-critical-bg);color:var(--status-critical);border-color:var(--status-critical)}
+.btn-icon.sell:hover{background:var(--status-good-bg);color:var(--status-good);border-color:var(--status-good)}
+
+/* Table */
+.table-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.search-wrap{position:relative;flex:1;min-width:200px;max-width:380px}
+.search-wrap svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--text-muted);pointer-events:none}
+.search-wrap input{width:100%;padding:9px 14px 9px 36px;border:1px solid var(--border);border-radius:var(--radius-sm);font:inherit;font-size:13px;background:var(--surface-input);color:var(--text-primary);transition:border-color .15s,box-shadow .15s}
+.search-wrap input:focus{outline:none;border-color:var(--brand-accent);box-shadow:0 0 0 3px var(--brand-accent-glow)}
+.filter-select{padding:9px 32px 9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font:inherit;font-size:13px;background:var(--surface-input);color:var(--text-primary);cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%238896a6' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;transition:border-color .15s}
+.filter-select:focus{outline:none;border-color:var(--brand-accent)}
+.data-table{width:100%;border-collapse:separate;border-spacing:0}
+.data-table th{text-align:left;padding:11px 16px;font-size:11.5px;font-weight:650;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid var(--divider);cursor:pointer;user-select:none;white-space:nowrap;background:var(--surface-card);position:sticky;top:0}
+.data-table th:hover{color:var(--text-secondary)}
+.data-table th .sort-ico{font-size:9px;margin-left:3px;opacity:.3}
+.data-table th.sorted .sort-ico{opacity:1;color:var(--brand-accent)}
+.data-table td{padding:12px 16px;font-size:13.5px;border-bottom:1px solid var(--divider);vertical-align:middle}
+.data-table tbody tr{transition:background .1s}
+.data-table tbody tr:hover{background:var(--brand-accent-light)}
+.product-name{font-weight:550;color:var(--text-primary)}
+.product-sku{font-size:12px;color:var(--text-muted);font-variant-numeric:tabular-nums;margin-top:1px}
+.stock-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:var(--radius-full);font-size:12.5px;font-weight:600}
+.stock-pill.ok{background:var(--status-good-bg);color:var(--status-good)}
+.stock-pill.low{background:var(--status-warning-bg);color:var(--status-warning)}
+.stock-pill.critical{background:var(--status-critical-bg);color:var(--status-critical)}
+.stock-pill svg{width:12px;height:12px}
+.stock-adjust{display:inline-flex;align-items:center;gap:0;border:1px solid var(--border);border-radius:var(--radius-xs);overflow:hidden}
+.stock-adjust button{width:28px;height:28px;border:none;background:var(--surface-input);cursor:pointer;font-size:14px;font-weight:600;color:var(--text-secondary);display:flex;align-items:center;justify-content:center;transition:all .12s}
+.stock-adjust button:hover{background:var(--brand-accent-light);color:var(--brand-accent)}
+.stock-adjust .stock-num{padding:0 8px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;min-width:40px;text-align:center;background:var(--surface-card);border-left:1px solid var(--border);border-right:1px solid var(--border);height:28px;display:flex;align-items:center;justify-content:center}
+.pagination{display:flex;align-items:center;justify-content:space-between;padding-top:16px;font-size:13px;color:var(--text-muted)}
+.page-btns{display:flex;gap:4px}
+.page-btns button{min-width:34px;height:34px;border-radius:var(--radius-xs);border:1px solid var(--border);background:var(--surface-card);color:var(--text-secondary);cursor:pointer;font:inherit;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .12s;padding:0 8px}
+.page-btns button:hover:not(:disabled){background:var(--surface-input)}
+.page-btns button:disabled{opacity:.3;cursor:default}
+.page-btns button.active{background:var(--brand-accent);color:#fff;border-color:var(--brand-accent)}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
+.modal-overlay.show{display:flex}
+.modal{background:var(--surface-card);border-radius:16px;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:modalIn .25s var(--ease)}
+@keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
+.modal-header{padding:22px 28px 18px;display:flex;align-items:center;justify-content:space-between}
+.modal-header h3{font-size:18px;font-weight:700;letter-spacing:-.02em}
+.modal-close{width:32px;height:32px;border-radius:var(--radius-xs);border:none;background:var(--surface-input);cursor:pointer;color:var(--text-muted);font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.modal-close:hover{background:var(--status-critical-bg);color:var(--status-critical)}
+.modal-body{padding:0 28px 24px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group.full{grid-column:1/-1}
+.form-group label{font-size:12.5px;font-weight:550;color:var(--text-secondary)}
+.form-group label .req{color:var(--status-critical);font-weight:700}
+.form-group input,.form-group select,.form-group textarea{padding:10px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);font:inherit;font-size:13.5px;background:var(--surface-input);color:var(--text-primary);transition:border-color .15s,box-shadow .15s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--brand-accent);box-shadow:0 0 0 3px var(--brand-accent-glow)}
+.form-group input.error,.form-group select.error{border-color:var(--status-critical);box-shadow:0 0 0 3px var(--status-critical-bg)}
+.form-group textarea{resize:vertical;min-height:60px}
+.form-error{font-size:11.5px;color:var(--status-critical);margin-top:2px;display:none}
+.form-error.show{display:block}
+.modal-footer{padding:16px 28px 22px;display:flex;justify-content:flex-end;gap:10px}
+
+/* Movement total display */
+.mv-total{background:var(--surface-input);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;margin-top:6px;text-align:right;font-size:16px;font-weight:700;letter-spacing:-.01em}
+
+/* Toast */
+.toast-container{position:fixed;top:80px;right:24px;z-index:300;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--surface-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;min-width:280px;max-width:380px;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:10px;animation:toastIn .3s var(--ease);font-size:13.5px}
+@keyframes toastIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+.toast.out{animation:toastOut .25s var(--ease) forwards}
+@keyframes toastOut{to{opacity:0;transform:translateX(30px)}}
+.toast-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.toast.success .toast-icon{background:var(--status-good-bg);color:var(--status-good)}
+.toast.error .toast-icon{background:var(--status-critical-bg);color:var(--status-critical)}
+.toast.info .toast-icon{background:var(--status-info-bg);color:var(--status-info)}
+
+/* Alert Items */
+.alert-item{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--divider);transition:background .12s;cursor:pointer}
+.alert-item:last-child{border-bottom:none}
+.alert-item:hover{background:var(--brand-accent-light)}
+.alert-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.alert-info{flex:1;min-width:0}
+.alert-info .name{font-size:13.5px;font-weight:550}
+.alert-info .detail{font-size:12px;color:var(--text-muted);margin-top:2px}
+.alert-val{font-size:14px;font-weight:650;white-space:nowrap}
+
+/* Activity */
+.activity-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--divider)}
+.activity-item:last-child{border-bottom:none}
+.activity-dot{width:8px;height:8px;border-radius:50%;margin-top:6px;flex-shrink:0}
+.activity-content{flex:1;font-size:13px;color:var(--text-secondary);line-height:1.5}
+.activity-content strong{color:var(--text-primary);font-weight:550}
+.activity-time{font-size:12px;color:var(--text-muted);white-space:nowrap;margin-top:4px}
+
+/* Categories */
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}
+.cat-card{background:var(--surface-card);border-radius:var(--radius);border:1px solid var(--border);padding:22px;box-shadow:var(--shadow-card);cursor:pointer;transition:all .2s var(--ease);position:relative;overflow:hidden}
+.cat-card:hover{box-shadow:var(--shadow-card-hover);transform:translateY(-3px);border-color:var(--border-hover)}
+.cat-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.cat-card .cat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.cat-card .cat-badge{font-size:12px;font-weight:600;padding:3px 9px;border-radius:var(--radius-full)}
+.cat-card .cat-name{font-size:14.5px;font-weight:650;margin-bottom:10px}
+.cat-card .cat-row{display:flex;justify-content:space-between;font-size:12.5px;color:var(--text-muted);margin-bottom:6px}
+.cat-card .cat-row strong{color:var(--text-primary)}
+.cat-progress{height:4px;background:var(--surface-input);border-radius:2px;margin-top:12px;overflow:hidden}
+.cat-progress-fill{height:100%;border-radius:2px;transition:width .5s var(--ease)}
+
+/* Suppliers */
+.supplier-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.supplier-card{background:var(--surface-card);border-radius:var(--radius);border:1px solid var(--border);padding:22px;box-shadow:var(--shadow-card);transition:all .2s var(--ease)}
+.supplier-card:hover{box-shadow:var(--shadow-card-hover);transform:translateY(-2px)}
+.supplier-top{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.supplier-avatar{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0}
+.supplier-name{font-size:14.5px;font-weight:650}
+.supplier-type{font-size:12px;color:var(--text-muted);margin-top:1px}
+.supplier-meta{font-size:12.5px;color:var(--text-secondary);display:flex;flex-direction:column;gap:5px}
+.supplier-meta span{display:flex;align-items:center;gap:6px}
+.supplier-meta svg{width:14px;height:14px;color:var(--text-muted);flex-shrink:0}
+.supplier-stats{display:flex;gap:16px;margin-top:14px;padding-top:14px;border-top:1px solid var(--divider)}
+.supplier-stat{text-align:center;flex:1}
+.supplier-stat .ss-val{font-size:16px;font-weight:700}
+.supplier-stat .ss-label{font-size:11px;color:var(--text-muted);margin-top:2px}
+
+/* Views */
+.view{display:none;animation:viewIn .3s var(--ease)}.view.active{display:block}
+@keyframes viewIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px}
+.section-title{font-size:22px;font-weight:700;letter-spacing:-.02em}
+.empty-state{padding:48px 24px;text-align:center;color:var(--text-muted)}
+.empty-state svg{width:48px;height:48px;opacity:.3;margin-bottom:12px}
+.empty-state p{font-size:14px}
+
+/* Tooltip */
+.tip{position:fixed;background:var(--surface-elevated);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;box-shadow:var(--shadow-lg);pointer-events:none;z-index:300;display:none;max-width:220px}
+.tip-label{font-size:11.5px;color:var(--text-muted);font-weight:500}
+.tip-value{font-weight:650;margin-top:3px;font-size:14px}
+
+/* Movement/History type badges */
+.log-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:var(--radius-full);font-size:12px;font-weight:600}
+.mv-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:var(--radius-full);font-size:12px;font-weight:600}
+.mv-badge.venta{background:var(--status-good-bg);color:var(--status-good)}
+.mv-badge.ingreso{background:var(--status-info-bg);color:var(--status-info)}
+.mv-badge.merma{background:var(--status-critical-bg);color:var(--status-critical)}
+.mv-badge.ajuste{background:var(--status-warning-bg);color:var(--status-warning)}
+
+/* Movements filter row */
+.mv-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mv-chip{padding:6px 14px;border-radius:var(--radius-full);border:1px solid var(--border);background:var(--surface-card);color:var(--text-secondary);font:inherit;font-size:12.5px;font-weight:500;cursor:pointer;transition:all .15s}
+.mv-chip:hover{border-color:var(--border-hover);background:var(--surface-card-hover)}
+.mv-chip.active{background:var(--brand-accent);color:#fff;border-color:var(--brand-accent)}
+
+/* Hidden file input */
+.hidden-input{position:absolute;width:0;height:0;opacity:0;pointer-events:none}
+
+/* Responsive */
+@media(max-width:1200px){.grid-60-40,.grid-2{grid-template-columns:1fr}.kpi-row,.daily-row{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;display:none}
+  .sidebar-overlay.show{display:block}
+  .main{margin-left:0}.hamburger{display:block}
+  .content{padding:16px}.header{padding:0 16px}
+  .header-search{display:none}.header-date{display:none}
+  .kpi-row,.daily-row{grid-template-columns:1fr 1fr}
+  .table-controls{flex-direction:column;align-items:stretch}
+  .search-wrap{max-width:none}.form-row{grid-template-columns:1fr}
+  .cat-grid{grid-template-columns:1fr}.supplier-grid{grid-template-columns:1fr}
+  .grid-3{grid-template-columns:1fr}.col-hide-m{display:none}
+  .donut-wrap{flex-direction:column}
+  .hbar-label{width:100px;min-width:100px;font-size:11px}
+  .vbar-wrap{height:150px}
+  .btn-sale span.sale-text{display:none}
+  .save-indicator .si-text{display:none}
+  .header-right{gap:6px}
+  .header-btn{width:32px;height:32px}
+  .header-btn[onclick="printView()"],.header-btn[onclick="openShortcutsModal()"]{display:none}
+}
+@media(max-width:480px){.kpi-row,.daily-row{grid-template-columns:1fr}.stat-tile .value{font-size:24px}.daily-info .dl-value{font-size:18px}}
+
+/* Print styles */
+@media print{
+  @page{size:A4;margin:15mm}
+  body{display:block!important;background:#fff!important;color:#000!important}
+  .sidebar,.sidebar-overlay,.header,.hamburger,.modal-overlay,.toast-container,.tip,.pagination,.table-controls,.btn,.btn-icon,.btn-sale,.btn-primary,.btn-secondary,.stock-adjust button,.chart-toggle,.save-indicator,.header-btn,.nav-badge,.setup-overlay,.lock-overlay{display:none!important}
+  .main{margin-left:0!important;display:block!important}
+  .content{padding:0!important}
+  .view{display:block!important;page-break-inside:avoid}
+  .view:not(.active){display:none!important}
+  .card{break-inside:avoid;box-shadow:none!important;border:1px solid #ddd!important;margin-bottom:12px}
+  .stat-tile,.daily-tile{box-shadow:none!important;border:1px solid #ddd!important}
+  .stat-tile:hover,.daily-tile:hover,.card:hover{transform:none!important;box-shadow:none!important}
+  .data-table th{background:#f5f5f5!important;color:#333!important;position:static!important}
+  .data-table td{font-size:12px}
+  .stock-pill{border:1px solid currentColor}
+  .print-header{display:block!important;text-align:center;padding:16px 0 24px;border-bottom:2px solid #333;margin-bottom:20px}
+  .print-header h1{font-size:20px;font-weight:700;margin-bottom:4px}
+  .print-header p{font-size:12px;color:#666}
+  .grid-60-40,.grid-2,.grid-3,.settings-grid,.report-grid,.kpi-row,.daily-row{display:block!important}
+  .grid-60-40>*,.grid-2>*,.grid-3>*,.settings-grid>*,.report-grid>*,.kpi-row>*,.daily-row>*{margin-bottom:16px}
+  .col-hide-m{display:table-cell!important}
+}
+.print-header{display:none}
+
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:var(--text-muted)}
+
+/* Settings view */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:1100px){.settings-grid{grid-template-columns:1fr}}
+.settings-card-title{font-size:13px;font-weight:650;color:var(--text-secondary);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.logo-upload-row{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+.logo-preview{width:64px;height:64px;border-radius:14px;background:linear-gradient(135deg,var(--brand-accent),#f59e0b);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#fff;flex-shrink:0;overflow:hidden;box-shadow:0 4px 12px rgba(232,104,47,.3)}
+.logo-preview img{width:100%;height:100%;object-fit:cover}
+.settings-actions{display:flex;gap:10px;flex-wrap:wrap;padding-top:6px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--divider)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-row-text .tr-title{font-size:13.5px;font-weight:550}
+.toggle-row-text .tr-sub{font-size:12px;color:var(--text-muted);margin-top:2px}
+.switch{position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.switch-track{position:absolute;cursor:pointer;inset:0;background:var(--border);border-radius:999px;transition:.2s}
+.switch-track::before{content:'';position:absolute;height:18px;width:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.switch input:checked+.switch-track{background:var(--brand-accent)}
+.switch input:checked+.switch-track::before{transform:translateX(18px)}
+.about-line{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--divider);font-size:13px}
+.about-line:last-child{border-bottom:none}
+.about-line span:first-child{color:var(--text-muted)}
+.about-line span:last-child{font-weight:600}
+
+/* Setup wizard (first run) */
+.setup-overlay{position:fixed;inset:0;background:linear-gradient(160deg,var(--sidebar-top),var(--sidebar-bottom));display:flex;align-items:center;justify-content:center;z-index:500;padding:20px}
+.setup-card{background:var(--surface-card);border-radius:20px;width:100%;max-width:480px;padding:36px 32px;box-shadow:var(--shadow-lg);animation:modalIn .3s var(--ease)}
+.setup-logo{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--brand-accent),#f59e0b);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#fff;margin-bottom:18px;box-shadow:0 4px 12px rgba(232,104,47,.3)}
+.setup-card h2{font-size:21px;font-weight:700;letter-spacing:-.02em;margin-bottom:6px}
+.setup-card p.setup-sub{font-size:13.5px;color:var(--text-muted);margin-bottom:24px;line-height:1.5}
+
+/* Confirm modal */
+.confirm-modal{max-width:400px}
+.confirm-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
+.confirm-body{text-align:center;padding:4px 28px 8px}
+.confirm-body h3{font-size:16px;font-weight:700;margin-bottom:8px}
+.confirm-body p{font-size:13.5px;color:var(--text-secondary);line-height:1.5}
+.confirm-footer{display:flex;gap:10px;padding:20px 28px 26px}
+.confirm-footer .btn{flex:1;justify-content:center}
+
+/* Toast with action */
+.toast{position:relative}
+.toast-action{margin-left:auto;background:none;border:none;color:var(--brand-accent);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;padding:4px 8px;border-radius:var(--radius-xs);white-space:nowrap}
+.toast-action:hover{background:var(--brand-accent-light)}
+
+/* Receipt */
+.receipt-wrap{display:none}
+@media print{body.receipt-print>*:not(.receipt-wrap){display:none!important}body.receipt-print .receipt-wrap{display:block!important}}
+.receipt-box{max-width:320px;margin:0 auto;font-family:'Courier New',monospace;padding:20px;color:#000}
+.receipt-box h4{text-align:center;font-size:15px;margin-bottom:2px}
+.receipt-box .r-line{border-top:1px dashed #999;margin:8px 0}
+.receipt-box .r-row{display:flex;justify-content:space-between;font-size:12.5px;padding:2px 0}
+.receipt-box .r-center{text-align:center;font-size:11.5px;color:#444}
+
+/* Keyboard hint */
+.kbd{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;border-radius:5px;background:var(--surface-input);border:1px solid var(--border);font-size:11px;font-weight:600;color:var(--text-secondary)}
+.search-kbd-hint{position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none}
+.header-search{position:relative}
+
+/* CSV import preview */
+.import-summary{display:flex;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+.import-stat{flex:1;min-width:110px;background:var(--surface-input);border-radius:var(--radius-sm);padding:12px 14px;text-align:center}
+.import-stat .is-val{font-size:20px;font-weight:700}
+.import-stat .is-label{font-size:11px;color:var(--text-muted);margin-top:2px}
+.import-table-wrap{max-height:280px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm)}
+.import-table-wrap table{width:100%;border-collapse:collapse;font-size:12.5px}
+.import-table-wrap th{position:sticky;top:0;background:var(--surface-card);text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);font-weight:650}
+.import-table-wrap td{padding:7px 10px;border-bottom:1px solid var(--divider)}
+.import-row-error{background:var(--status-critical-bg)}
+.import-row-warn{background:var(--status-warning-bg)}
+.drop-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:32px 20px;text-align:center;cursor:pointer;transition:all .15s}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--brand-accent);background:var(--brand-accent-light)}
+.drop-zone svg{width:32px;height:32px;color:var(--text-muted);margin-bottom:10px}
+.drop-zone p{font-size:13px;color:var(--text-secondary)}
+.drop-zone .dz-sub{font-size:12px;color:var(--text-muted);margin-top:4px}
+
+/* Cart / POS sale modal */
+.cart-search-wrap{position:relative}
+.cart-suggestions{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface-elevated);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);max-height:240px;overflow-y:auto;z-index:20;display:none}
+.cart-suggestions.show{display:block}
+.cart-sugg-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;font-size:13px}
+.cart-sugg-item:hover,.cart-sugg-item.hi{background:var(--brand-accent-light)}
+.cart-sugg-item .cs-name{font-weight:550}
+.cart-sugg-item .cs-meta{font-size:11.5px;color:var(--text-muted)}
+.cart-sugg-empty{padding:14px;text-align:center;font-size:12.5px;color:var(--text-muted)}
+.cart-table-wrap{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin-top:14px}
+.cart-table-wrap table{width:100%;border-collapse:collapse}
+.cart-table-wrap th{text-align:left;padding:9px 12px;font-size:11px;font-weight:650;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;background:var(--surface-input);border-bottom:1px solid var(--border)}
+.cart-table-wrap td{padding:8px 12px;font-size:13px;border-bottom:1px solid var(--divider);vertical-align:middle}
+.cart-table-wrap tr:last-child td{border-bottom:none}
+.cart-qty-input{width:56px;padding:5px 6px;border:1px solid var(--border);border-radius:var(--radius-xs);background:var(--surface-input);color:var(--text-primary);font:inherit;text-align:center}
+.cart-price-input{width:80px;padding:5px 6px;border:1px solid var(--border);border-radius:var(--radius-xs);background:var(--surface-input);color:var(--text-primary);font:inherit;text-align:right}
+.cart-remove{background:none;border:none;color:var(--status-critical);cursor:pointer;padding:4px;display:flex;align-items:center;border-radius:var(--radius-xs)}
+.cart-remove:hover{background:var(--status-critical-bg)}
+.cart-empty{padding:28px;text-align:center;color:var(--text-muted);font-size:13px}
+.cart-total-bar{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding:14px 16px;background:var(--surface-input);border-radius:var(--radius-sm)}
+.cart-total-bar .ct-label{font-size:12.5px;color:var(--text-muted)}
+.cart-total-bar .ct-value{font-size:22px;font-weight:700;letter-spacing:-.02em}
+.cart-total-bar .ct-iva{font-size:11.5px;color:var(--text-muted);margin-top:2px}
+
+/* PIN lock screen */
+.lock-overlay{position:fixed;inset:0;background:linear-gradient(160deg,var(--sidebar-top),var(--sidebar-bottom));display:flex;align-items:center;justify-content:center;z-index:600;padding:20px}
+.lock-card{background:var(--surface-card);border-radius:20px;width:100%;max-width:360px;padding:36px 32px;box-shadow:var(--shadow-lg);text-align:center;animation:modalIn .3s var(--ease)}
+.lock-card .lock-logo{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--brand-accent),#f59e0b);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#fff;margin:0 auto 18px;box-shadow:0 4px 12px rgba(232,104,47,.3)}
+.lock-card h2{font-size:18px;font-weight:700;margin-bottom:6px}
+.lock-card p{font-size:13px;color:var(--text-muted);margin-bottom:20px}
+.pin-dots{display:flex;justify-content:center;gap:12px;margin-bottom:20px}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border)}
+.pin-dot.filled{background:var(--brand-accent);border-color:var(--brand-accent)}
+.pin-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pin-key{padding:14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-input);color:var(--text-primary);font:inherit;font-size:17px;font-weight:600;cursor:pointer;transition:all .12s}
+.pin-key:hover{background:var(--brand-accent-light);border-color:var(--brand-accent)}
+.pin-key.wide{grid-column:span 1}
+
+/* Reports view */
+.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:1100px){.report-grid{grid-template-columns:1fr}}
+.rank-row{display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid var(--divider)}
+.rank-row:last-child{border-bottom:none}
+.rank-num{width:24px;height:24px;border-radius:6px;background:var(--surface-input);color:var(--text-secondary);font-size:11.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rank-row:nth-child(1) .rank-num{background:#FFD70033;color:#c9a200}
+.rank-row:nth-child(2) .rank-num{background:#C0C0C033;color:#8a8a8a}
+.rank-row:nth-child(3) .rank-num{background:#CD7F3233;color:#a8631f}
+.rank-info{flex:1;min-width:0}
+.rank-info .ri-name{font-size:13px;font-weight:550}
+.rank-info .ri-sub{font-size:11.5px;color:var(--text-muted)}
+.rank-val{font-size:13.5px;font-weight:650;white-space:nowrap}
+.trend-bars{display:flex;align-items:flex-end;gap:3px;height:120px;padding-top:8px}
+.trend-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%}
+.trend-bar-wrap{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center}
+.trend-bar{width:100%;max-width:20px;border-radius:3px 3px 0 0;background:var(--brand-accent);min-height:2px;transition:height .4s var(--ease);cursor:pointer}
+.trend-bar:hover{opacity:.8}
+.trend-label{font-size:9px;color:var(--text-muted)}
+</style>
+</head>
+<body>
+
+<div class="print-header" id="printHeader">
+  <h1>Mi Ferreteria — Inventario</h1>
+  <p id="printDate"></p>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-logo" id="sidebarLogo">FA</div>
+    <div class="sidebar-brand-text"><h1 id="sidebarStoreName">Mi Ferreteria</h1><p>Control de Inventario</p></div>
+  </div>
+  <div class="sidebar-section"><div class="sidebar-section-label">Principal</div></div>
+  <nav class="sidebar-nav" id="sidebarNav">
+    <button class="active" data-view="dashboard" onclick="go('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Dashboard</button>
+    <button data-view="inventory" onclick="go('inventory')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>Inventario</button>
+    <button data-view="alerts" onclick="go('alerts')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Alertas<span class="nav-badge" id="alertBadge">0</span></button>
+    <button data-view="categories" onclick="go('categories')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Categorias</button>
+    <div class="sidebar-section"><div class="sidebar-section-label">Gestion</div></div>
+    <button data-view="suppliers" onclick="go('suppliers')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Proveedores</button>
+    <button data-view="movements" onclick="go('movements')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Movimientos</button>
+    <button data-view="reports" onclick="go('reports')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>Reportes</button>
+    <div class="sidebar-section"><div class="sidebar-section-label">Sistema</div></div>
+    <button data-view="settings" onclick="go('settings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Configuracion</button>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-footer-logo" id="sidebarFooterLogo">FA</div>
+    <div class="sidebar-footer-text" id="sidebarFooterText">Sistema de inventario<br><strong style="opacity:.7;font-size:11px">v4.1 Edicion Profesional</strong></div>
+  </div>
+</aside>
+
+<div class="main">
+  <header class="header">
+    <div class="header-left">
+      <button class="hamburger" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/></svg></button>
+      <h2 id="viewTitle">Dashboard</h2>
+    </div>
+    <div class="header-right">
+      <div class="header-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Buscar producto..." id="globalSearch" onkeydown="if(event.key==='Enter'){goToProduct(this.value);this.value=''}">
+        <span class="kbd search-kbd-hint" id="searchKbdHint">/</span>
+      </div>
+      <button class="btn-sale" onclick="openCartModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg><span class="sale-text">Registrar venta</span></button>
+      <span class="save-indicator" id="saveIndicator"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span class="si-text" id="saveText">Guardado</span></span>
+      <span class="header-date" id="headerDate"></span>
+      <button class="header-btn" onclick="exportJSON()" title="Exportar JSON"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+      <button class="header-btn" onclick="document.getElementById('jsonFileInput').click()" title="Importar JSON"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
+      <button class="header-btn" onclick="toggleTheme()" title="Cambiar tema"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
+      <button class="header-btn" onclick="printView()" title="Imprimir"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></button>
+      <button class="header-btn" onclick="openShortcutsModal()" title="Atajos de teclado y ayuda">?</button>
+    </div>
+  </header>
+  <input type="file" accept=".json" class="hidden-input" id="jsonFileInput" onchange="importJSON(event)">
+
+  <main class="content">
+    <!-- DASHBOARD -->
+    <section class="view active" id="view-dashboard">
+      <div class="daily-row" id="dailyRow"></div>
+      <div class="kpi-row" id="kpiRow"></div>
+      <div class="grid-60-40">
+        <div class="card">
+          <div class="card-header">
+            <h3>Distribucion del inventario por valor</h3>
+            <div style="display:flex;align-items:center;gap:12px">
+              <span class="subtitle">Top categorias</span>
+              <div class="chart-toggle" id="chartToggle">
+                <button class="ct-btn active" onclick="setChart('donut')" title="Circular"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 019 9h-9z"/></svg></button>
+                <button class="ct-btn" onclick="setChart('hbar')" title="Barras"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="14" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="10" height="4" rx="1"/></svg></button>
+                <button class="ct-btn" onclick="setChart('vbar')" title="Columnas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="4" height="11" rx="1"/><rect x="10" y="4" width="4" height="17" rx="1"/><rect x="16" y="8" width="4" height="13" rx="1"/></svg></button>
+              </div>
+            </div>
+          </div>
+          <div class="card-body" id="mainChart"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Alertas de stock</h3><span class="subtitle" id="alertCount"></span></div>
+          <div class="card-body flush" id="dashAlerts"></div>
+        </div>
+      </div>
+      <div class="grid-60-40">
+        <div class="card">
+          <div class="card-header"><h3>Stock por categoria</h3><span class="subtitle">Unidades totales</span></div>
+          <div class="card-body" id="stockBarChart"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Actividad reciente</h3></div>
+          <div class="card-body" id="activityFeed"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INVENTORY -->
+    <section class="view" id="view-inventory">
+      <div class="section-header">
+        <div><h2 class="section-title">Inventario</h2><p style="font-size:13px;color:var(--text-muted);margin-top:2px" id="invSubtitle"></p></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-secondary" onclick="openImportModal()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Cargar productos (CSV)</button>
+          <button class="btn btn-secondary" onclick="exportCSV()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exportar CSV</button>
+          <button class="btn btn-primary" onclick="openAddModal()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Nuevo producto</button>
+        </div>
+      </div>
+      <div class="card"><div class="card-body">
+        <div class="table-controls">
+          <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="Buscar por nombre, SKU o proveedor..." id="searchInput" oninput="curPage=1;renderInventory()"></div>
+          <select class="filter-select" id="catFilter" onchange="curPage=1;renderInventory()"><option value="">Todas las categorias</option></select>
+          <select class="filter-select" id="stockFilter" onchange="curPage=1;renderInventory()"><option value="">Todo el stock</option><option value="critical">Critico</option><option value="low">Bajo</option><option value="ok">Normal</option></select>
+          <select class="filter-select" id="ubicFilter" onchange="curPage=1;renderInventory()"><option value="">Todas las ubicaciones</option></select>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table" id="invTable"><thead><tr>
+            <th onclick="doSort('nombre')">Producto <span class="sort-ico">&#9650;</span></th>
+            <th onclick="doSort('categoria')" class="col-hide-m">Categoria <span class="sort-ico">&#9650;</span></th>
+            <th onclick="doSort('stock')">Stock <span class="sort-ico">&#9650;</span></th>
+            <th class="col-hide-m">Estado</th>
+            <th onclick="doSort('pv')" class="col-hide-m">Precio venta <span class="sort-ico">&#9650;</span></th>
+            <th class="col-hide-m">Ubicacion</th>
+            <th style="width:120px"></th>
+          </tr></thead><tbody id="invBody"></tbody></table>
+        </div>
+        <div class="pagination" id="invPag"></div>
+      </div></div>
+    </section>
+
+    <!-- ALERTS -->
+    <section class="view" id="view-alerts">
+      <div class="section-header"><h2 class="section-title">Alertas de stock</h2></div>
+      <div class="kpi-row" id="alertKpi"></div>
+      <div class="grid-2">
+        <div class="card"><div class="card-header"><h3>Stock critico</h3><span class="subtitle">Reposicion urgente</span></div><div class="card-body flush" id="criticalList"></div></div>
+        <div class="card"><div class="card-header"><h3>Stock bajo</h3><span class="subtitle">Programar pedido</span></div><div class="card-body flush" id="lowList"></div></div>
+      </div>
+    </section>
+
+    <!-- CATEGORIES -->
+    <section class="view" id="view-categories">
+      <div class="section-header"><h2 class="section-title">Categorias</h2><p style="font-size:13px;color:var(--text-muted)">Haz clic en una categoria para ver sus productos</p></div>
+      <div class="cat-grid" id="catGrid"></div>
+    </section>
+
+    <!-- SUPPLIERS -->
+    <section class="view" id="view-suppliers">
+      <div class="section-header"><h2 class="section-title">Proveedores</h2></div>
+      <div class="kpi-row" id="suppKpi" style="margin-bottom:24px"></div>
+      <div class="supplier-grid" id="suppGrid"></div>
+    </section>
+
+    <!-- MOVEMENTS -->
+    <section class="view" id="view-movements">
+      <div class="section-header">
+        <h2 class="section-title">Movimientos</h2>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-secondary" onclick="openMovementModal('ingreso')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Ingreso</button>
+          <button class="btn btn-sale" onclick="openCartModal()" style="padding:9px 18px;font-size:13.5px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg> Registrar venta</button>
+        </div>
+      </div>
+      <div class="kpi-row" id="mvKpi" style="margin-bottom:24px"></div>
+      <div class="card">
+        <div class="card-header">
+          <div class="mv-filters" id="mvFilters">
+            <button class="mv-chip active" data-range="today" onclick="setMvRange('today')">Hoy</button>
+            <button class="mv-chip" data-range="week" onclick="setMvRange('week')">7 dias</button>
+            <button class="mv-chip" data-range="month" onclick="setMvRange('month')">30 dias</button>
+            <button class="mv-chip" data-range="all" onclick="setMvRange('all')">Todo</button>
+            <span style="width:1px;height:24px;background:var(--border);margin:0 4px"></span>
+            <select class="filter-select" id="mvTypeFilter" onchange="renderMovements()" style="font-size:12.5px;padding:6px 28px 6px 10px">
+              <option value="">Todos los tipos</option>
+              <option value="venta">Ventas</option>
+              <option value="ingreso">Ingresos</option>
+              <option value="merma">Mermas</option>
+              <option value="ajuste">Ajustes</option>
+            </select>
+            <div class="search-wrap" style="min-width:160px;max-width:240px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="Buscar producto..." id="mvSearch" oninput="renderMovements()"></div>
+          </div>
+          <button class="btn btn-secondary" onclick="clearMovements()" style="font-size:12.5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg> Limpiar</button>
+        </div>
+        <div class="card-body flush" style="overflow-x:auto">
+          <div id="mvTableWrap"></div>
+        </div>
+        <div class="pagination" id="mvPag" style="padding:12px 24px"></div>
+      </div>
+    </section>
+
+    <!-- REPORTS -->
+    <section class="view" id="view-reports">
+      <div class="section-header">
+        <h2 class="section-title">Reportes</h2>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <div class="mv-filters">
+            <button class="mv-chip active" data-rrange="30" onclick="setReportRange(30)">30 dias</button>
+            <button class="mv-chip" data-rrange="7" onclick="setReportRange(7)">7 dias</button>
+            <button class="mv-chip" data-rrange="90" onclick="setReportRange(90)">90 dias</button>
+            <button class="mv-chip" data-rrange="0" onclick="setReportRange(0)">Todo</button>
+          </div>
+          <button class="btn btn-secondary" onclick="exportMovementsCSV()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exportar movimientos CSV</button>
+        </div>
+      </div>
+      <div class="kpi-row" id="reportKpi" style="margin-bottom:22px"></div>
+      <div class="card">
+        <div class="card-header"><h3>Tendencia de ventas</h3><span class="subtitle" id="trendSubtitle"></span></div>
+        <div class="card-body" id="trendChart"></div>
+      </div>
+      <div class="report-grid">
+        <div class="card"><div class="card-header"><h3>Productos mas vendidos</h3><span class="subtitle">Por ingresos</span></div><div class="card-body flush" id="topSellersList"></div></div>
+        <div class="card"><div class="card-header"><h3>Stock sin movimiento</h3><span class="subtitle">Sin ventas en el periodo</span></div><div class="card-body flush" id="deadStockList"></div></div>
+      </div>
+      <div class="report-grid">
+        <div class="card"><div class="card-header"><h3>Margen por categoria</h3><span class="subtitle">Utilidad estimada del inventario</span></div><div class="card-body flush" id="marginList"></div></div>
+        <div class="card"><div class="card-header"><h3>Ventas por metodo de pago</h3><span class="subtitle" id="paySubtitle"></span></div><div class="card-body flush" id="paymentList"></div></div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="view" id="view-settings">
+      <div class="section-header"><h2 class="section-title">Configuracion</h2><p style="font-size:13px;color:var(--text-muted)">Personaliza el sistema con los datos de tu negocio</p></div>
+      <div class="settings-grid">
+        <div class="card"><div class="card-body">
+          <div class="settings-card-title">Datos del negocio</div>
+          <div class="logo-upload-row">
+            <div class="logo-preview" id="setLogoPreview">FA</div>
+            <div>
+              <button class="btn btn-secondary" onclick="document.getElementById('logoFileInput').click()" style="font-size:12.5px;padding:7px 14px">Subir logo</button>
+              <button class="btn-icon danger" onclick="clearLogo()" title="Quitar logo" style="margin-left:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+              <input type="file" accept="image/*" class="hidden-input" id="logoFileInput" onchange="onLogoUpload(event)">
+              <div style="font-size:11.5px;color:var(--text-muted);margin-top:6px">PNG o JPG, ideal cuadrado</div>
+            </div>
+          </div>
+          <div class="form-row"><div class="form-group full"><label>Nombre de la ferreteria <span class="req">*</span></label><input type="text" id="setStoreName" placeholder="Ej: Ferreteria El Constructor"></div></div>
+          <div class="form-row">
+            <div class="form-group"><label>Telefono</label><input type="text" id="setPhone" placeholder="+56 9 1234 5678"></div>
+            <div class="form-group"><label>RUT / ID Fiscal</label><input type="text" id="setRut" placeholder="76.123.456-7"></div>
+          </div>
+          <div class="form-row"><div class="form-group full"><label>Direccion</label><input type="text" id="setAddress" placeholder="Av. Principal 123, Comuna"></div></div>
+          <div class="settings-actions"><button class="btn btn-primary" onclick="saveSettings()">Guardar cambios</button></div>
+        </div></div>
+
+        <div class="card"><div class="card-body">
+          <div class="settings-card-title">Preferencias del sistema</div>
+          <div class="toggle-row">
+            <div class="toggle-row-text"><div class="tr-title">Aplicar IVA en ventas</div><div class="tr-sub">Muestra el desglose de IVA en boletas y reportes</div></div>
+            <label class="switch"><input type="checkbox" id="setIvaEnabled" onchange="toggleIvaRow()"><span class="switch-track"></span></label>
+          </div>
+          <div class="form-row" id="ivaRateRow" style="margin-top:10px;display:none"><div class="form-group"><label>Tasa de IVA (%)</label><input type="number" id="setIvaRate" min="0" max="100" step="0.1" value="19"></div></div>
+          <div class="toggle-row">
+            <div class="toggle-row-text"><div class="tr-title">Confirmar cambios grandes de stock</div><div class="tr-sub">Pide confirmacion si un ajuste supera el 50% del stock</div></div>
+            <label class="switch"><input type="checkbox" id="setConfirmBig" checked><span class="switch-track"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-row-text"><div class="tr-title">Recordatorio de respaldo</div><div class="tr-sub">Avisa si no exportas un respaldo hace mas de 7 dias</div></div>
+            <label class="switch"><input type="checkbox" id="setBackupReminder" checked><span class="switch-track"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-row-text"><div class="tr-title">Bloqueo con PIN</div><div class="tr-sub">Pide un PIN de 4 digitos al abrir el sistema</div></div>
+            <label class="switch"><input type="checkbox" id="setPinEnabled" onchange="togglePinRow()"><span class="switch-track"></span></label>
+          </div>
+          <div class="form-row" id="pinSetRow" style="margin-top:10px;display:none"><div class="form-group"><label>PIN (4 digitos)</label><input type="text" id="setPin" maxlength="4" inputmode="numeric" placeholder="1234"></div></div>
+          <div class="settings-actions"><button class="btn btn-primary" onclick="saveSettings()">Guardar preferencias</button></div>
+        </div></div>
+
+        <div class="card"><div class="card-body">
+          <div class="settings-card-title">Respaldo y datos</div>
+          <p style="font-size:12.5px;color:var(--text-secondary);line-height:1.6;margin-bottom:14px">Toda la informacion se guarda localmente en este computador. Exporta copias de seguridad con regularidad para no perder tu inventario e historial de ventas.</p>
+          <div class="settings-actions">
+            <button class="btn btn-secondary" onclick="exportJSON()">Exportar respaldo completo</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('jsonFileInput').click()">Restaurar respaldo</button>
+            <button class="btn btn-secondary" onclick="openImportModal()">Cargar productos (CSV)</button>
+            <button class="btn-icon danger" onclick="resetAllData()" title="Borrar todos los datos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+          </div>
+          <div id="backupStatus" style="font-size:12px;color:var(--text-muted);margin-top:14px"></div>
+        </div></div>
+
+        <div class="card"><div class="card-body">
+          <div class="settings-card-title">Acerca del sistema</div>
+          <div class="about-line"><span>Producto</span><span>Sistema de Inventario para Ferreterias</span></div>
+          <div class="about-line"><span>Version</span><span>4.1 — Edicion Profesional</span></div>
+          <div class="about-line"><span>Productos registrados</span><span id="aboutProdCount">—</span></div>
+          <div class="about-line"><span>Movimientos registrados</span><span id="aboutMvCount">—</span></div>
+          <div class="about-line"><span>Almacenamiento</span><span>Local (este navegador)</span></div>
+          <div class="settings-actions"><button class="btn btn-secondary" onclick="openShortcutsModal()">Ver atajos de teclado</button><button class="btn btn-secondary" id="lockNowBtn" onclick="lockNow()" style="display:none">Bloquear ahora</button></div>
+        </div></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- PRODUCT MODAL -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="modalTitle">Agregar producto</h3><button class="modal-close" onclick="closeModal()">&#215;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-row"><div class="form-group full"><label>Nombre del producto <span class="req">*</span></label><input type="text" id="fNombre" placeholder="Ej: Cemento Polpaico 25kg"><div class="form-error" id="errNombre">El nombre es obligatorio</div></div></div>
+      <div class="form-row">
+        <div class="form-group"><label>Categoria</label><select id="fCat"></select></div>
+        <div class="form-group"><label>SKU</label><input type="text" id="fSku" placeholder="Ej: MAT-001"><div class="form-error" id="errSku"></div></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Stock actual <span class="req">*</span></label><input type="number" id="fStock" min="0" placeholder="0"><div class="form-error" id="errStock">El stock es obligatorio</div></div>
+        <div class="form-group"><label>Stock minimo <span class="req">*</span></label><input type="number" id="fStockMin" min="0" placeholder="0"><div class="form-error" id="errStockMin">El stock minimo es obligatorio</div></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Precio compra ($)</label><input type="number" id="fPC" min="0" placeholder="0"><div class="form-error" id="errPC">El precio de compra no puede ser negativo</div></div>
+        <div class="form-group"><label>Precio venta ($) <span class="req">*</span></label><input type="number" id="fPV" min="0" placeholder="0"><div class="form-error" id="errPV">El precio de venta es obligatorio</div></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Unidad</label><select id="fUnit">
+          <option value="unidad">Unidad</option><option value="kg">Kilogramo</option><option value="metro">Metro</option>
+          <option value="saco">Saco</option><option value="rollo">Rollo</option><option value="litro">Litro</option>
+          <option value="galon">Galon</option><option value="caja">Caja</option><option value="par">Par</option>
+          <option value="m3">Metro cubico</option><option value="plancha">Plancha</option><option value="bolsa">Bolsa</option>
+        </select></div>
+        <div class="form-group"><label>Ubicacion</label><select id="fUbic">
+          <option>Pasillo 1</option><option>Pasillo 2</option><option>Pasillo 3</option><option>Pasillo 4</option>
+          <option>Bodega principal</option><option>Bodega exterior</option><option>Patio</option><option>Vitrina</option><option>Mostrador</option>
+        </select></div>
+      </div>
+      <div class="form-row"><div class="form-group full"><label>Proveedor</label><input type="text" id="fProv" placeholder="Ej: Cementos Polpaico S.A."></div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveProduct()" id="saveBtn">Guardar producto</button>
+    </div>
+  </div>
+</div>
+
+<!-- MOVEMENT MODAL (ingreso / merma / ajuste) -->
+<div class="modal-overlay" id="movementModal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="mvModalTitle">Registrar ingreso</h3><button class="modal-close" onclick="closeMovementModal()">&#215;</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group full"><label>Tipo de movimiento</label>
+          <select id="mvType" onchange="onMvTypeChange()">
+            <option value="ingreso">Ingreso de stock</option>
+            <option value="merma">Merma / Perdida</option>
+            <option value="ajuste">Ajuste de inventario</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group full"><label>Producto <span class="req">*</span></label>
+          <select id="mvProduct" onchange="onMvProductChange()"><option value="">Seleccionar producto...</option></select>
+          <div class="form-error" id="errMvProduct">Seleccione un producto</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Cantidad <span class="req">*</span></label><input type="number" id="mvQty" min="1" value="1" onchange="calcMvTotal()" oninput="calcMvTotal()"><div class="form-error" id="errMvQty">La cantidad debe ser mayor a 0</div></div>
+        <div class="form-group"><label id="mvPriceLabel">Precio unitario ($)</label><input type="number" id="mvPrice" min="0" onchange="calcMvTotal()" oninput="calcMvTotal()"></div>
+      </div>
+      <div class="form-row" id="mvPaymentRow">
+        <div class="form-group full"><label>Metodo de pago</label><select id="mvPayment">
+          <option value="efectivo">Efectivo</option><option value="debito">Tarjeta debito</option>
+          <option value="credito">Tarjeta credito</option><option value="transferencia">Transferencia</option>
+        </select></div>
+      </div>
+      <div class="form-row" id="mvTotalRow">
+        <div class="form-group full"><label>Total</label><div class="mv-total" id="mvTotalDisplay">$0</div></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group full"><label>Nota (opcional)</label><textarea id="mvNote" placeholder="Observaciones del movimiento..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeMovementModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveMovement()" id="saveMvBtn">Registrar ingreso</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETUP WIZARD (first run) -->
+<div class="setup-overlay" id="setupOverlay" style="display:none">
+  <div class="setup-card">
+    <div class="setup-logo" id="wizLogo">FA</div>
+    <h2>Bienvenido a tu sistema de inventario</h2>
+    <p class="setup-sub">Antes de comenzar, cuentanos el nombre de tu ferreteria. Podras cambiar estos datos despues en Configuracion.</p>
+    <div class="form-group full" style="margin-bottom:14px"><label>Nombre de la ferreteria <span class="req">*</span></label><input type="text" id="wizStoreName" placeholder="Ej: Ferreteria El Constructor"><div class="form-error" id="errWizName">Ingresa el nombre de tu negocio</div></div>
+    <div class="form-group full" style="margin-bottom:22px"><label>Telefono (opcional)</label><input type="text" id="wizPhone" placeholder="+56 9 1234 5678"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="finishSetupWizard()">Comenzar a usar el sistema</button>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal confirm-modal">
+    <div class="modal-body confirm-body" style="padding-top:26px">
+      <div class="confirm-icon" id="confirmIcon" style="background:var(--status-critical-bg)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--status-critical)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <h3 id="confirmTitle">Confirmar accion</h3>
+      <p id="confirmMsg">¿Estas seguro?</p>
+    </div>
+    <div class="confirm-footer">
+      <button class="btn btn-secondary" onclick="closeConfirmModal()">Cancelar</button>
+      <button class="btn btn-primary" id="confirmOkBtn" style="background:var(--status-critical)">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- CSV IMPORT MODAL -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-header"><h3>Cargar productos desde CSV</h3><button class="modal-close" onclick="closeImportModal()">&#215;</button></div>
+    <div class="modal-body">
+      <div id="importStep1">
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('csvFileInput').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleCsvDrop(event)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <p>Haz clic o arrastra aqui un archivo CSV</p>
+          <div class="dz-sub">Columnas: nombre, categoria, sku, stock, stockMin, pc, pv, unidad, ubicacion, proveedor</div>
+        </div>
+        <input type="file" accept=".csv" class="hidden-input" id="csvFileInput" onchange="handleCsvFile(event)">
+        <div class="settings-actions" style="margin-top:16px"><button class="btn btn-secondary" onclick="downloadCsvTemplate()">Descargar plantilla CSV</button></div>
+      </div>
+      <div id="importStep2" style="display:none">
+        <div class="import-summary">
+          <div class="import-stat"><div class="is-val" id="impNew" style="color:var(--status-good)">0</div><div class="is-label">Nuevos</div></div>
+          <div class="import-stat"><div class="is-val" id="impUpdate" style="color:var(--status-info)">0</div><div class="is-label">Sumaran stock (SKU existente)</div></div>
+          <div class="import-stat"><div class="is-val" id="impError" style="color:var(--status-critical)">0</div><div class="is-label">Con errores</div></div>
+        </div>
+        <div class="import-table-wrap"><table><thead><tr><th>Fila</th><th>Nombre</th><th>Categoria</th><th>SKU</th><th>Stock</th><th>Precio venta</th><th>Estado</th></tr></thead><tbody id="importPreviewBody"></tbody></table></div>
+      </div>
+    </div>
+    <div class="modal-footer" id="importFooter">
+      <button class="btn btn-secondary" onclick="closeImportModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHORTCUTS / HELP MODAL -->
+<div class="modal-overlay" id="shortcutsModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><h3>Atajos de teclado</h3><button class="modal-close" onclick="closeShortcutsModal()">&#215;</button></div>
+    <div class="modal-body">
+      <div class="about-line"><span>Buscar producto</span><span class="kbd">/</span></div>
+      <div class="about-line"><span>Nuevo producto</span><span class="kbd">N</span></div>
+      <div class="about-line"><span>Registrar venta</span><span class="kbd">V</span></div>
+      <div class="about-line"><span>Cerrar ventana emergente</span><span class="kbd">Esc</span></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-primary" onclick="closeShortcutsModal()">Entendido</button></div>
+  </div>
+</div>
+
+<!-- CART / POS SALE MODAL -->
+<div class="modal-overlay" id="cartModal">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-header"><h3>Registrar venta</h3><button class="modal-close" onclick="closeCartModal()">&#215;</button></div>
+    <div class="modal-body">
+      <div class="cart-search-wrap">
+        <input type="text" id="cartSearchInput" placeholder="Escribe el nombre o escanea el SKU y presiona Enter..." oninput="renderCartSuggestions()" onkeydown="handleCartSearchKey(event)" autocomplete="off">
+        <div class="cart-suggestions" id="cartSuggestions"></div>
+      </div>
+      <div class="cart-table-wrap">
+        <table>
+          <thead><tr><th>Producto</th><th style="width:70px">Cant.</th><th style="width:90px">Precio</th><th style="width:90px">Subtotal</th><th style="width:36px"></th></tr></thead>
+          <tbody id="cartBody"></tbody>
+        </table>
+      </div>
+      <div class="form-row" style="margin-top:14px">
+        <div class="form-group"><label>Cliente (opcional)</label><input type="text" id="cartClient" placeholder="Nombre del cliente"></div>
+        <div class="form-group"><label>Metodo de pago</label><select id="cartPayment">
+          <option value="efectivo">Efectivo</option><option value="debito">Tarjeta debito</option>
+          <option value="credito">Tarjeta credito</option><option value="transferencia">Transferencia</option>
+        </select></div>
+      </div>
+      <div class="cart-total-bar">
+        <div><div class="ct-label">Total a pagar</div><div class="ct-iva" id="cartIvaLine"></div></div>
+        <div class="ct-value" id="cartTotalValue">$0</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeCartModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmCartSale()" id="cartConfirmBtn">Confirmar venta</button>
+    </div>
+  </div>
+</div>
+
+<!-- PIN LOCK SCREEN -->
+<div class="lock-overlay" id="lockOverlay" style="display:none">
+  <div class="lock-card">
+    <div class="lock-logo" id="lockLogo">FA</div>
+    <h2>Sistema bloqueado</h2>
+    <p>Ingresa el PIN para continuar</p>
+    <div class="pin-dots" id="pinDots"></div>
+    <div class="pin-keypad" id="pinKeypad"></div>
+    <div class="form-error show" id="lockError" style="display:none;margin-top:10px">PIN incorrecto</div>
+  </div>
+</div>
+
+<div class="receipt-wrap" id="receiptWrap">
+  <div class="receipt-box" id="receiptBox"></div>
+</div>
+
+<div class="toast-container" id="toasts"></div>
+<div class="tip" id="tip"><div class="tip-label"></div><div class="tip-value"></div></div>
+
+<script>
+/*===============================================================
+  DATA
+  ===============================================================*/
+const CATS=[
+  {id:'mat',name:'Materiales de Construccion',icon:'&#127959;',color:'var(--cat-mat)',hex:'#5B7FA5'},
+  {id:'ace',name:'Aceros y Metales',icon:'&#9881;',color:'var(--cat-ace)',hex:'#90A4AE'},
+  {id:'mad',name:'Maderas',icon:'&#129717;',color:'var(--cat-mad)',hex:'#8D6E63'},
+  {id:'her',name:'Herramientas',icon:'&#128295;',color:'var(--cat-her)',hex:'#42A5F5'},
+  {id:'pin',name:'Pinturas y Acabados',icon:'&#127912;',color:'var(--cat-pin)',hex:'#EC407A'},
+  {id:'ele',name:'Electricidad',icon:'&#9889;',color:'var(--cat-ele)',hex:'#FDD835'},
+  {id:'gas',name:'Gasfiteria',icon:'&#128167;',color:'var(--cat-gas)',hex:'#26C6DA'},
+  {id:'fij',name:'Fijaciones y Adhesivos',icon:'&#128297;',color:'var(--cat-fij)',hex:'#78909C'},
+  {id:'seg',name:'Seguridad Industrial',icon:'&#129521;',color:'var(--cat-seg)',hex:'#EF5350'},
+  {id:'tec',name:'Techumbre y Cubiertas',icon:'&#127968;',color:'var(--cat-tec)',hex:'#FF7043'},
+  {id:'pis',name:'Pisos y Revestimientos',icon:'&#129513;',color:'var(--cat-pis)',hex:'#BCAAA4'},
+  {id:'cer',name:'Cerraduras y Quincalleria',icon:'&#128273;',color:'var(--cat-cer)',hex:'#FFA726'},
+  {id:'hog',name:'Hogar y Jardin',icon:'&#127793;',color:'var(--cat-hog)',hex:'#66BB6A'},
+  {id:'qui',name:'Productos Quimicos',icon:'&#129514;',color:'var(--cat-qui)',hex:'#AB47BC'},
+];
+const CM={};CATS.forEach(c=>CM[c.id]=c);
+
+const DEFAULT_PRODUCTS=[
+  {id:1,nombre:'Cemento Polpaico 25kg',categoria:'mat',sku:'MAT-001',stock:85,stockMin:30,pc:4900,pv:6990,u:'saco',ub:'Bodega principal',prov:'Polpaico S.A.'},
+  {id:2,nombre:'Cemento Melon 25kg',categoria:'mat',sku:'MAT-002',stock:60,stockMin:25,pc:4800,pv:6890,u:'saco',ub:'Bodega principal',prov:'Cementos Melon'},
+  {id:3,nombre:'Arena gruesa',categoria:'mat',sku:'MAT-003',stock:12,stockMin:5,pc:12000,pv:18000,u:'m3',ub:'Patio',prov:'Aridos del Norte'},
+  {id:4,nombre:'Gravilla',categoria:'mat',sku:'MAT-004',stock:8,stockMin:5,pc:10000,pv:15000,u:'m3',ub:'Patio',prov:'Aridos del Norte'},
+  {id:5,nombre:'Ripio',categoria:'mat',sku:'MAT-005',stock:10,stockMin:5,pc:9500,pv:14000,u:'m3',ub:'Patio',prov:'Aridos del Norte'},
+  {id:6,nombre:'Ladrillo princesa',categoria:'mat',sku:'MAT-006',stock:1500,stockMin:500,pc:120,pv:180,u:'unidad',ub:'Patio',prov:'Ladrillos Santiago'},
+  {id:7,nombre:'Bloque cemento 15cm',categoria:'mat',sku:'MAT-007',stock:400,stockMin:150,pc:550,pv:790,u:'unidad',ub:'Patio',prov:'Blocks Chile'},
+  {id:8,nombre:'Yeso saco 30kg',categoria:'mat',sku:'MAT-008',stock:25,stockMin:15,pc:3500,pv:4990,u:'saco',ub:'Bodega principal',prov:'Volcan'},
+  {id:9,nombre:'Cal saco 25kg',categoria:'mat',sku:'MAT-009',stock:18,stockMin:10,pc:2800,pv:3990,u:'saco',ub:'Bodega principal',prov:'Cal Chile'},
+  {id:10,nombre:'Mortero pega ladrillos 25kg',categoria:'mat',sku:'MAT-010',stock:35,stockMin:15,pc:3200,pv:4590,u:'saco',ub:'Bodega principal',prov:'Topex'},
+  {id:11,nombre:'Impermeabilizante Sika 5kg',categoria:'mat',sku:'MAT-011',stock:12,stockMin:8,pc:8500,pv:12990,u:'unidad',ub:'Pasillo 2',prov:'Sika Chile'},
+  {id:12,nombre:'Fierro estriado 8mm 6m',categoria:'ace',sku:'ACE-001',stock:120,stockMin:40,pc:2400,pv:3490,u:'unidad',ub:'Bodega exterior',prov:'CAP Acero'},
+  {id:13,nombre:'Fierro estriado 10mm 6m',categoria:'ace',sku:'ACE-002',stock:80,stockMin:30,pc:3800,pv:5490,u:'unidad',ub:'Bodega exterior',prov:'CAP Acero'},
+  {id:14,nombre:'Fierro estriado 12mm 6m',categoria:'ace',sku:'ACE-003',stock:45,stockMin:20,pc:5300,pv:7690,u:'unidad',ub:'Bodega exterior',prov:'CAP Acero'},
+  {id:15,nombre:'Perfil metalcon C 60mm 3m',categoria:'ace',sku:'ACE-004',stock:60,stockMin:25,pc:2100,pv:2990,u:'unidad',ub:'Bodega exterior',prov:'Cintac'},
+  {id:16,nombre:'Plancha zinc 0.35mm 3.5m',categoria:'ace',sku:'ACE-005',stock:35,stockMin:15,pc:6200,pv:8990,u:'plancha',ub:'Bodega exterior',prov:'Cintac'},
+  {id:17,nombre:'Malla acma C-139 2.4x6m',categoria:'ace',sku:'ACE-006',stock:15,stockMin:8,pc:11000,pv:15990,u:'unidad',ub:'Bodega exterior',prov:'Ideal Alambrec'},
+  {id:18,nombre:'Alambre galvanizado N16 kg',categoria:'ace',sku:'ACE-007',stock:30,stockMin:10,pc:2100,pv:2990,u:'kg',ub:'Pasillo 3',prov:'Ideal Alambrec'},
+  {id:19,nombre:'Angulo 25x25x2mm 6m',categoria:'ace',sku:'ACE-008',stock:20,stockMin:10,pc:3800,pv:5490,u:'unidad',ub:'Bodega exterior',prov:'Cintac'},
+  {id:20,nombre:'Cuarton pino 2x4 3.2m',categoria:'mad',sku:'MAD-001',stock:75,stockMin:25,pc:2400,pv:3490,u:'unidad',ub:'Bodega exterior',prov:'CMPC Maderas'},
+  {id:21,nombre:'Tabla pino 1x6 3.2m',categoria:'mad',sku:'MAD-002',stock:50,stockMin:20,pc:1800,pv:2690,u:'unidad',ub:'Bodega exterior',prov:'CMPC Maderas'},
+  {id:22,nombre:'OSB 11.1mm 1.22x2.44m',categoria:'mad',sku:'MAD-003',stock:18,stockMin:10,pc:8900,pv:12990,u:'plancha',ub:'Bodega exterior',prov:'LP Chile'},
+  {id:23,nombre:'Terciado 15mm 1.22x2.44m',categoria:'mad',sku:'MAD-004',stock:10,stockMin:6,pc:17000,pv:24990,u:'plancha',ub:'Bodega exterior',prov:'Arauco'},
+  {id:24,nombre:'Melamina blanca 15mm',categoria:'mad',sku:'MAD-005',stock:8,stockMin:5,pc:20500,pv:29990,u:'plancha',ub:'Bodega exterior',prov:'Arauco'},
+  {id:25,nombre:'Yeso carton 12.5mm std',categoria:'mad',sku:'MAD-006',stock:22,stockMin:10,pc:5200,pv:7490,u:'plancha',ub:'Bodega exterior',prov:'Volcan'},
+  {id:26,nombre:'Martillo carpintero 20oz',categoria:'her',sku:'HER-001',stock:12,stockMin:5,pc:4800,pv:6990,u:'unidad',ub:'Pasillo 1',prov:'Stanley'},
+  {id:27,nombre:'Alicate universal 8"',categoria:'her',sku:'HER-002',stock:15,stockMin:5,pc:3400,pv:4990,u:'unidad',ub:'Pasillo 1',prov:'Stanley'},
+  {id:28,nombre:'Destornillador Phillips PH2',categoria:'her',sku:'HER-003',stock:20,stockMin:8,pc:1300,pv:1990,u:'unidad',ub:'Pasillo 1',prov:'Stanley'},
+  {id:29,nombre:'Huincha medir 5m',categoria:'her',sku:'HER-004',stock:14,stockMin:6,pc:2700,pv:3990,u:'unidad',ub:'Pasillo 1',prov:'Stanley'},
+  {id:30,nombre:'Nivel aluminio 60cm',categoria:'her',sku:'HER-005',stock:6,stockMin:4,pc:5500,pv:7990,u:'unidad',ub:'Pasillo 1',prov:'Truper'},
+  {id:31,nombre:'Serrucho 22"',categoria:'her',sku:'HER-006',stock:7,stockMin:4,pc:6200,pv:8990,u:'unidad',ub:'Pasillo 1',prov:'Tramontina'},
+  {id:32,nombre:'Taladro percutor 13mm 700W',categoria:'her',sku:'HER-007',stock:5,stockMin:3,pc:27000,pv:39990,u:'unidad',ub:'Vitrina',prov:'Bosch'},
+  {id:33,nombre:'Esmeril angular 4.5" 820W',categoria:'her',sku:'HER-008',stock:4,stockMin:3,pc:19900,pv:29990,u:'unidad',ub:'Vitrina',prov:'Bosch'},
+  {id:34,nombre:'Sierra circular 7.25" 1400W',categoria:'her',sku:'HER-009',stock:3,stockMin:2,pc:34000,pv:49990,u:'unidad',ub:'Vitrina',prov:'DeWalt'},
+  {id:35,nombre:'Rotomartillo SDS Plus 800W',categoria:'her',sku:'HER-010',stock:2,stockMin:2,pc:41000,pv:59990,u:'unidad',ub:'Vitrina',prov:'Bosch'},
+  {id:36,nombre:'Llave francesa 10"',categoria:'her',sku:'HER-011',stock:8,stockMin:4,pc:5800,pv:8490,u:'unidad',ub:'Pasillo 1',prov:'Bahco'},
+  {id:37,nombre:'Carretilla construccion',categoria:'her',sku:'HER-012',stock:4,stockMin:3,pc:22000,pv:32990,u:'unidad',ub:'Patio',prov:'Imsa'},
+  {id:38,nombre:'Pintura latex blanca 4L',categoria:'pin',sku:'PIN-001',stock:20,stockMin:10,pc:8900,pv:12990,u:'galon',ub:'Pasillo 2',prov:'Sherwin Williams'},
+  {id:39,nombre:'Pintura latex blanca 1L',categoria:'pin',sku:'PIN-002',stock:25,stockMin:10,pc:3200,pv:4590,u:'litro',ub:'Pasillo 2',prov:'Sherwin Williams'},
+  {id:40,nombre:'Esmalte sintetico 1/4 gal',categoria:'pin',sku:'PIN-003',stock:18,stockMin:8,pc:5500,pv:7990,u:'unidad',ub:'Pasillo 2',prov:'Tricolor'},
+  {id:41,nombre:'Barniz madera 1L',categoria:'pin',sku:'PIN-004',stock:10,stockMin:5,pc:6200,pv:8990,u:'litro',ub:'Pasillo 2',prov:'Sipa'},
+  {id:42,nombre:'Rodillo lana 23cm',categoria:'pin',sku:'PIN-005',stock:15,stockMin:6,pc:2700,pv:3990,u:'unidad',ub:'Pasillo 2',prov:'Soft'},
+  {id:43,nombre:'Brocha 3"',categoria:'pin',sku:'PIN-006',stock:22,stockMin:8,pc:1700,pv:2490,u:'unidad',ub:'Pasillo 2',prov:'Atlas'},
+  {id:44,nombre:'Diluyente sintetico 1L',categoria:'pin',sku:'PIN-007',stock:14,stockMin:8,pc:2400,pv:3490,u:'litro',ub:'Pasillo 2',prov:'Quimica Universal'},
+  {id:45,nombre:'Pasta muro interior 24kg',categoria:'pin',sku:'PIN-008',stock:8,stockMin:5,pc:10200,pv:14990,u:'unidad',ub:'Pasillo 2',prov:'Topex'},
+  {id:46,nombre:'Spray color negro 400ml',categoria:'pin',sku:'PIN-009',stock:12,stockMin:6,pc:2800,pv:3990,u:'unidad',ub:'Pasillo 2',prov:'Marson'},
+  {id:47,nombre:'Cable THW 2.5mm rojo 100m',categoria:'ele',sku:'ELE-001',stock:8,stockMin:5,pc:20500,pv:29990,u:'rollo',ub:'Pasillo 3',prov:'Madeco'},
+  {id:48,nombre:'Cable THW 1.5mm azul 100m',categoria:'ele',sku:'ELE-002',stock:6,stockMin:5,pc:14000,pv:19990,u:'rollo',ub:'Pasillo 3',prov:'Madeco'},
+  {id:49,nombre:'Interruptor 9/12',categoria:'ele',sku:'ELE-003',stock:40,stockMin:15,pc:890,pv:1290,u:'unidad',ub:'Pasillo 3',prov:'BTicino'},
+  {id:50,nombre:'Enchufe hembra 10A',categoria:'ele',sku:'ELE-004',stock:35,stockMin:15,pc:590,pv:890,u:'unidad',ub:'Pasillo 3',prov:'BTicino'},
+  {id:51,nombre:'Caja derivacion PVC',categoria:'ele',sku:'ELE-005',stock:30,stockMin:10,pc:450,pv:690,u:'unidad',ub:'Pasillo 3',prov:'Tigre'},
+  {id:52,nombre:'Tubo conduit 20mm 3m',categoria:'ele',sku:'ELE-006',stock:25,stockMin:10,pc:1300,pv:1890,u:'unidad',ub:'Pasillo 3',prov:'Tigre'},
+  {id:53,nombre:'Ampolleta LED 9W E27',categoria:'ele',sku:'ELE-007',stock:45,stockMin:20,pc:1200,pv:1990,u:'unidad',ub:'Pasillo 3',prov:'Philips'},
+  {id:54,nombre:'Tablero 4 polos empotrar',categoria:'ele',sku:'ELE-008',stock:5,stockMin:3,pc:8500,pv:12490,u:'unidad',ub:'Pasillo 3',prov:'Schneider'},
+  {id:55,nombre:'Automatico 16A curva C',categoria:'ele',sku:'ELE-009',stock:12,stockMin:6,pc:4500,pv:6490,u:'unidad',ub:'Pasillo 3',prov:'Schneider'},
+  {id:56,nombre:'Caneria PVC 110mm 3m',categoria:'gas',sku:'GAS-001',stock:15,stockMin:8,pc:6200,pv:8990,u:'unidad',ub:'Pasillo 4',prov:'Tigre'},
+  {id:57,nombre:'Caneria PVC 50mm 3m',categoria:'gas',sku:'GAS-002',stock:20,stockMin:10,pc:2700,pv:3990,u:'unidad',ub:'Pasillo 4',prov:'Tigre'},
+  {id:58,nombre:'Codo PVC 90 110mm',categoria:'gas',sku:'GAS-003',stock:25,stockMin:10,pc:990,pv:1490,u:'unidad',ub:'Pasillo 4',prov:'Tigre'},
+  {id:59,nombre:'Llave paso 1/2"',categoria:'gas',sku:'GAS-004',stock:12,stockMin:6,pc:2700,pv:3990,u:'unidad',ub:'Pasillo 4',prov:'FV'},
+  {id:60,nombre:'Griferia cocina monocomando',categoria:'gas',sku:'GAS-005',stock:4,stockMin:3,pc:13500,pv:19990,u:'unidad',ub:'Vitrina',prov:'FV'},
+  {id:61,nombre:'Pegamento PVC 240cc',categoria:'gas',sku:'GAS-006',stock:18,stockMin:8,pc:2700,pv:3990,u:'unidad',ub:'Pasillo 4',prov:'Tigre'},
+  {id:62,nombre:'Caneria PPR 20mm 4m',categoria:'gas',sku:'GAS-007',stock:15,stockMin:8,pc:3200,pv:4690,u:'unidad',ub:'Pasillo 4',prov:'Amanco'},
+  {id:63,nombre:'Sifon flexible 1.1/2"',categoria:'gas',sku:'GAS-008',stock:10,stockMin:5,pc:2100,pv:2990,u:'unidad',ub:'Pasillo 4',prov:'Docol'},
+  {id:64,nombre:'Tornillo madera 6x1.5" x100',categoria:'fij',sku:'FIJ-001',stock:45,stockMin:20,pc:1700,pv:2490,u:'caja',ub:'Pasillo 1',prov:'Segufix'},
+  {id:65,nombre:'Clavo 2.5" kg',categoria:'fij',sku:'FIJ-002',stock:30,stockMin:10,pc:2100,pv:2990,u:'kg',ub:'Pasillo 1',prov:'Ideal'},
+  {id:66,nombre:'Perno hex 3/8x2"',categoria:'fij',sku:'FIJ-003',stock:60,stockMin:20,pc:190,pv:290,u:'unidad',ub:'Pasillo 1',prov:'Segufix'},
+  {id:67,nombre:'Taco Fischer N8 x100',categoria:'fij',sku:'FIJ-004',stock:35,stockMin:15,pc:2700,pv:3990,u:'caja',ub:'Pasillo 1',prov:'Fischer'},
+  {id:68,nombre:'Silicona transparente 280ml',categoria:'fij',sku:'FIJ-005',stock:14,stockMin:8,pc:2700,pv:3990,u:'unidad',ub:'Pasillo 1',prov:'Sika'},
+  {id:69,nombre:'Adhesivo montaje 400ml',categoria:'fij',sku:'FIJ-006',stock:10,stockMin:6,pc:3400,pv:4990,u:'unidad',ub:'Pasillo 1',prov:'Agorex'},
+  {id:70,nombre:'Cinta aisladora 18mm',categoria:'fij',sku:'FIJ-007',stock:50,stockMin:20,pc:680,pv:990,u:'unidad',ub:'Pasillo 1',prov:'3M'},
+  {id:71,nombre:'Teflon 12mm x 10m',categoria:'fij',sku:'FIJ-008',stock:40,stockMin:15,pc:320,pv:490,u:'unidad',ub:'Pasillo 1',prov:'Materiales Chile'},
+  {id:72,nombre:'Golilla plana 3/8" x50',categoria:'fij',sku:'FIJ-009',stock:25,stockMin:10,pc:990,pv:1490,u:'bolsa',ub:'Pasillo 1',prov:'Segufix'},
+  {id:73,nombre:'Guantes cabritilla par',categoria:'seg',sku:'SEG-001',stock:20,stockMin:8,pc:2700,pv:3990,u:'par',ub:'Mostrador',prov:'Steelpro'},
+  {id:74,nombre:'Lentes seguridad claros',categoria:'seg',sku:'SEG-002',stock:15,stockMin:8,pc:1900,pv:2990,u:'unidad',ub:'Mostrador',prov:'Steelpro'},
+  {id:75,nombre:'Casco seguridad blanco',categoria:'seg',sku:'SEG-003',stock:8,stockMin:5,pc:3900,pv:5990,u:'unidad',ub:'Mostrador',prov:'MSA'},
+  {id:76,nombre:'Zapato seguridad N42',categoria:'seg',sku:'SEG-004',stock:3,stockMin:3,pc:17000,pv:24990,u:'par',ub:'Pasillo 1',prov:'Bata'},
+  {id:77,nombre:'Mascarilla polvo N95',categoria:'seg',sku:'SEG-005',stock:25,stockMin:15,pc:890,pv:1290,u:'unidad',ub:'Mostrador',prov:'3M'},
+  {id:78,nombre:'Chaleco reflectante',categoria:'seg',sku:'SEG-006',stock:10,stockMin:5,pc:2400,pv:3490,u:'unidad',ub:'Mostrador',prov:'Steelpro'},
+  {id:79,nombre:'Plancha zinc acanalada 0.35 3.5m',categoria:'tec',sku:'TEC-001',stock:25,stockMin:10,pc:6200,pv:8990,u:'plancha',ub:'Bodega exterior',prov:'Cintac'},
+  {id:80,nombre:'Policarbonato alveolar 6mm',categoria:'tec',sku:'TEC-002',stock:5,stockMin:3,pc:10200,pv:14990,u:'plancha',ub:'Bodega exterior',prov:'Pizarreno'},
+  {id:81,nombre:'Teja asfaltica roja',categoria:'tec',sku:'TEC-003',stock:30,stockMin:15,pc:4100,pv:5990,u:'unidad',ub:'Bodega exterior',prov:'Owens Corning'},
+  {id:82,nombre:'Canaleta PVC 3m',categoria:'tec',sku:'TEC-004',stock:12,stockMin:6,pc:3400,pv:4990,u:'unidad',ub:'Bodega exterior',prov:'Tigre'},
+  {id:83,nombre:'Bajada agua PVC 3m',categoria:'tec',sku:'TEC-005',stock:10,stockMin:5,pc:2700,pv:3990,u:'unidad',ub:'Bodega exterior',prov:'Tigre'},
+  {id:84,nombre:'Ceramica 45x45 gris m2',categoria:'pis',sku:'PIS-001',stock:45,stockMin:20,pc:5800,pv:8490,u:'unidad',ub:'Pasillo 2',prov:'Cordillera'},
+  {id:85,nombre:'Piso flotante 8mm roble',categoria:'pis',sku:'PIS-002',stock:30,stockMin:10,pc:4900,pv:6990,u:'unidad',ub:'Pasillo 2',prov:'Kronotex'},
+  {id:86,nombre:'Adhesivo ceramico 25kg',categoria:'pis',sku:'PIS-003',stock:20,stockMin:10,pc:4200,pv:5990,u:'saco',ub:'Bodega principal',prov:'Bekron'},
+  {id:87,nombre:'Frague blanco 1kg',categoria:'pis',sku:'PIS-004',stock:18,stockMin:8,pc:1600,pv:2290,u:'unidad',ub:'Pasillo 2',prov:'Bekron'},
+  {id:88,nombre:'Cerradura sobreponer',categoria:'cer',sku:'CER-001',stock:8,stockMin:4,pc:8900,pv:12990,u:'unidad',ub:'Vitrina',prov:'Yale'},
+  {id:89,nombre:'Bisagra 3" par',categoria:'cer',sku:'CER-002',stock:25,stockMin:10,pc:1300,pv:1990,u:'par',ub:'Pasillo 1',prov:'Stanley'},
+  {id:90,nombre:'Candado 40mm',categoria:'cer',sku:'CER-003',stock:12,stockMin:5,pc:3400,pv:4990,u:'unidad',ub:'Vitrina',prov:'Yale'},
+  {id:91,nombre:'Picaporte 80mm',categoria:'cer',sku:'CER-004',stock:15,stockMin:6,pc:590,pv:890,u:'unidad',ub:'Pasillo 1',prov:'Gala'},
+  {id:92,nombre:'Cerrojo seguridad',categoria:'cer',sku:'CER-005',stock:6,stockMin:3,pc:5800,pv:8490,u:'unidad',ub:'Vitrina',prov:'Yale'},
+  {id:93,nombre:'Manguera jardin 1/2" 15m',categoria:'hog',sku:'HOG-001',stock:6,stockMin:4,pc:6800,pv:9990,u:'unidad',ub:'Pasillo 4',prov:'Tramontina'},
+  {id:94,nombre:'Escoba fibra',categoria:'hog',sku:'HOG-002',stock:10,stockMin:5,pc:1900,pv:2990,u:'unidad',ub:'Pasillo 4',prov:'Varios'},
+  {id:95,nombre:'Balde 10L',categoria:'hog',sku:'HOG-003',stock:15,stockMin:6,pc:1300,pv:1990,u:'unidad',ub:'Pasillo 4',prov:'Varios'},
+  {id:96,nombre:'WD-40 multiuso 311g',categoria:'hog',sku:'HOG-004',stock:12,stockMin:6,pc:4800,pv:6990,u:'unidad',ub:'Mostrador',prov:'WD-40 Company'},
+  {id:97,nombre:'Acido muriatico 1L',categoria:'qui',sku:'QUI-001',stock:10,stockMin:5,pc:1900,pv:2790,u:'litro',ub:'Bodega principal',prov:'Quimica Universal'},
+  {id:98,nombre:'Aguarras 1L',categoria:'qui',sku:'QUI-002',stock:8,stockMin:5,pc:2400,pv:3490,u:'litro',ub:'Bodega principal',prov:'Quimica Universal'},
+  {id:99,nombre:'Grasa litio 250g',categoria:'qui',sku:'QUI-003',stock:6,stockMin:4,pc:2100,pv:2990,u:'unidad',ub:'Pasillo 1',prov:'Shell'},
+  {id:100,nombre:'Lubricante multiuso spray 300ml',categoria:'qui',sku:'QUI-004',stock:9,stockMin:5,pc:3200,pv:4590,u:'unidad',ub:'Mostrador',prov:'CRC'},
+];
+
+let products=JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+let nxId=101;
+
+const suppliers=[
+  {name:'Polpaico S.A.',type:'Cementos',contact:'+56 2 2422 4500',email:'ventas@polpaico.cl',color:'#5B7FA5'},
+  {name:'CAP Acero',type:'Aceros y metales',contact:'+56 2 2818 5000',email:'ventas@capacero.cl',color:'#90A4AE'},
+  {name:'Cintac',type:'Perfiles y zinc',contact:'+56 2 2350 8000',email:'ventas@cintac.cl',color:'#90A4AE'},
+  {name:'CMPC Maderas',type:'Maderas',contact:'+56 2 2441 2000',email:'maderas@cmpc.cl',color:'#8D6E63'},
+  {name:'Sherwin Williams',type:'Pinturas',contact:'+56 2 2828 5500',email:'chile@sherwin.cl',color:'#EC407A'},
+  {name:'Bosch',type:'Herramientas electricas',contact:'+56 2 2750 1000',email:'contacto@bosch.cl',color:'#42A5F5'},
+  {name:'Tigre',type:'PVC y gasfiteria',contact:'+56 2 2661 4700',email:'ventas@tigre.cl',color:'#26C6DA'},
+  {name:'Stanley',type:'Herramientas manuales',contact:'+56 2 2756 3000',email:'chile@stanley.com',color:'#42A5F5'},
+  {name:'BTicino',type:'Material electrico',contact:'+56 2 2480 2000',email:'info@bticino.cl',color:'#FDD835'},
+  {name:'Cementos Melon',type:'Cementos',contact:'+56 2 2461 5000',email:'ventas@melon.cl',color:'#5B7FA5'},
+  {name:'Segufix',type:'Fijaciones',contact:'+56 2 2555 2000',email:'ventas@segufix.cl',color:'#78909C'},
+  {name:'Fischer',type:'Fijaciones',contact:'+56 2 2350 8800',email:'info@fischer.cl',color:'#78909C'},
+  {name:'Aridos del Norte',type:'Aridos',contact:'+56 9 8765 4321',email:'ventas@aridosdelnorte.cl',color:'#5B7FA5'},
+  {name:'Yale',type:'Cerraduras',contact:'+56 2 2555 3000',email:'ventas@yale.cl',color:'#FFA726'},
+];
+
+/* Movements & action log */
+let movements=[];
+let mvId=1;
+let actionLog=[];
+
+function logAction(type,detail,productName){
+  actionLog.unshift({time:new Date().toISOString(),type,detail,product:productName||''});
+  if(actionLog.length>500)actionLog=actionLog.slice(0,500);
+  if(curView==='dashboard')renderActivity();
+}
+
+/*===============================================================
+  SETTINGS / WHITE-LABEL
+  ===============================================================*/
+const SETTINGS_KEY='ferreteria_settings_v1';
+let settings={
+  storeName:'',phone:'',rut:'',address:'',logo:'',
+  ivaEnabled:false,ivaRate:19,
+  confirmBigChanges:true,backupReminder:true,
+  pinEnabled:false,pin:'',
+  lastBackupAt:''
+};
+function loadSettings(){
+  try{
+    const raw=localStorage.getItem(SETTINGS_KEY);
+    if(raw)settings={...settings,...JSON.parse(raw)};
+  }catch(e){console.error('Error cargando configuracion:',e)}
+}
+function persistSettings(){
+  localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));
+}
+function initials(name){
+  return (name||'').trim().split(/\s+/).map(w=>w[0]).filter(Boolean).slice(0,2).join('').toUpperCase()||'FA';
+}
+function applySettings(){
+  const name=settings.storeName||'Mi Ferreteria';
+  document.title=name+' — Control de Inventario';
+  $('sidebarStoreName').textContent=name;
+  $('sidebarFooterText').innerHTML='Sistema de inventario<br><strong style="opacity:.7;font-size:11px">v4.1 Edicion Profesional</strong>';
+  const logoHtml=settings.logo?'<img src="'+h(settings.logo)+'" alt="Logo">':h(initials(name));
+  $('sidebarLogo').innerHTML=logoHtml;
+  $('sidebarFooterLogo').innerHTML=settings.logo?'<img src="'+h(settings.logo)+'" alt="Logo" style="width:100%;height:100%;object-fit:cover;border-radius:8px">':h(initials(name));
+  const ph=$('printHeader');
+  if(ph)ph.querySelector('h1').textContent=name+' — Inventario';
+  // Settings form fields
+  if($('setStoreName')){
+    $('setStoreName').value=settings.storeName;
+    $('setPhone').value=settings.phone;
+    $('setRut').value=settings.rut;
+    $('setAddress').value=settings.address;
+    $('setLogoPreview').innerHTML=logoHtml;
+    $('setIvaEnabled').checked=settings.ivaEnabled;
+    $('setIvaRate').value=settings.ivaRate;
+    $('ivaRateRow').style.display=settings.ivaEnabled?'':'none';
+    $('setConfirmBig').checked=settings.confirmBigChanges;
+    $('setBackupReminder').checked=settings.backupReminder;
+    $('setPinEnabled').checked=settings.pinEnabled;
+    $('setPin').value=settings.pin;
+    $('pinSetRow').style.display=settings.pinEnabled?'':'none';
+  }
+}
+function toggleIvaRow(){$('ivaRateRow').style.display=$('setIvaEnabled').checked?'':'none'}
+function togglePinRow(){$('pinSetRow').style.display=$('setPinEnabled').checked?'':'none'}
+function saveSettings(){
+  const name=$('setStoreName').value.trim();
+  if(!name){toast('El nombre de la ferreteria es obligatorio','error');return}
+  settings.storeName=name;
+  settings.phone=$('setPhone').value.trim();
+  settings.rut=$('setRut').value.trim();
+  settings.address=$('setAddress').value.trim();
+  settings.ivaEnabled=$('setIvaEnabled').checked;
+  settings.ivaRate=parseFloat($('setIvaRate').value)||0;
+  settings.confirmBigChanges=$('setConfirmBig').checked;
+  settings.backupReminder=$('setBackupReminder').checked;
+  const pinEnabled=$('setPinEnabled').checked;
+  const pinVal=$('setPin').value.trim();
+  if(pinEnabled&&!/^\d{4}$/.test(pinVal)){toast('El PIN debe tener exactamente 4 digitos','error');return}
+  settings.pinEnabled=pinEnabled;
+  settings.pin=pinEnabled?pinVal:'';
+  persistSettings();
+  applySettings();
+  if($('lockNowBtn'))$('lockNowBtn').style.display=(settings.pinEnabled&&settings.pin)?'':'none';
+  toast('Configuracion guardada correctamente');
+}
+function onLogoUpload(e){
+  const file=e.target.files[0];if(!file)return;
+  if(file.size>1024*1024){toast('La imagen debe pesar menos de 1MB','error');return}
+  const reader=new FileReader();
+  reader.onload=ev=>{settings.logo=ev.target.result;persistSettings();applySettings();toast('Logo actualizado')};
+  reader.readAsDataURL(file);
+  e.target.value='';
+}
+function clearLogo(){settings.logo='';persistSettings();applySettings();toast('Logo eliminado','info')}
+
+function resetAllData(){
+  confirmModal('Borrar todos los datos','Esto eliminara permanentemente todos los productos, movimientos y el historial. Esta accion no se puede deshacer.',()=>{
+    localStorage.removeItem(STORAGE_KEY);
+    products=JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));nxId=101;movements=[];mvId=1;ticketId=1;actionLog=[];
+    saveData();
+    toast('Datos restablecidos a los valores de ejemplo','info');
+    go('dashboard');
+  });
+}
+
+function checkBackupReminder(){
+  const el=$('backupStatus');if(!el)return;
+  if(!settings.backupReminder){el.textContent='';return}
+  if(!settings.lastBackupAt){el.innerHTML='<span style="color:var(--status-warning)">Aun no has exportado ningun respaldo. Se recomienda hacerlo periodicamente.</span>';return}
+  const days=(Date.now()-new Date(settings.lastBackupAt).getTime())/86400000;
+  if(days>7){el.innerHTML='<span style="color:var(--status-warning)">Tu ultimo respaldo fue hace '+Math.floor(days)+' dias. Considera exportar uno nuevo.</span>'}
+  else{el.textContent='Ultimo respaldo: '+new Date(settings.lastBackupAt).toLocaleString('es-CL')}
+}
+
+/*===============================================================
+  CUSTOM CONFIRM MODAL (replaces window.confirm)
+  ===============================================================*/
+let confirmCallback=null;
+function confirmModal(title,msg,onConfirm,okLabel){
+  $('confirmTitle').textContent=title;
+  $('confirmMsg').textContent=msg;
+  $('confirmOkBtn').textContent=okLabel||'Confirmar';
+  confirmCallback=onConfirm;
+  $('confirmModal').classList.add('show');
+}
+function closeConfirmModal(){$('confirmModal').classList.remove('show');confirmCallback=null}
+function onConfirmOkClick(){const cb=confirmCallback;closeConfirmModal();if(cb)cb()}
+
+/*===============================================================
+  SHORTCUTS MODAL
+  ===============================================================*/
+function openShortcutsModal(){$('shortcutsModal').classList.add('show')}
+function closeShortcutsModal(){$('shortcutsModal').classList.remove('show')}
+
+/*===============================================================
+  LOCALSTORAGE PERSISTENCE
+  ===============================================================*/
+const STORAGE_KEY='ferreteria_avendano_v4';
+
+function saveData(){
+  try{
+    const data={version:'4.1',products,movements,nxId,mvId,ticketId,actionLog,savedAt:new Date().toISOString()};
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+    updateSaveIndicator(true);
+  }catch(e){
+    console.error('Error guardando datos:',e);
+    updateSaveIndicator(false);
+  }
+}
+
+function loadData(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw)return; // first use — keep defaults
+    const data=JSON.parse(raw);
+    if(data.products&&Array.isArray(data.products)){products=data.products}
+    if(data.movements&&Array.isArray(data.movements)){movements=data.movements}
+    if(typeof data.nxId==='number'){nxId=data.nxId}
+    if(typeof data.mvId==='number'){mvId=data.mvId}
+    if(typeof data.ticketId==='number'){ticketId=data.ticketId}
+    if(data.actionLog&&Array.isArray(data.actionLog)){actionLog=data.actionLog}
+  }catch(e){
+    console.error('Error cargando datos:',e);
+  }
+}
+
+function updateSaveIndicator(ok){
+  const el=$('saveIndicator');
+  if(!el)return;
+  if(ok){
+    el.classList.remove('saving');
+    const t=$('saveText');
+    if(t){
+      const now=new Date();
+      t.textContent='Guardado '+now.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
+    }
+  }else{
+    el.classList.add('saving');
+    const t=$('saveText');if(t)t.textContent='Error al guardar';
+  }
+}
+
+/*===============================================================
+  STATE & HELPERS
+  ===============================================================*/
+let curView='dashboard',sortCol='nombre',sortDir='asc',curPage=1,chartMode='donut',mvRange='today',mvPage=1;
+const PG=15,MV_PG=20;
+const fmt=n=>n.toLocaleString('es-CL');
+const $=id=>document.getElementById(id);
+function fmtM(n){return '$'+n.toLocaleString('es-CL')}
+function compact(n){if(n>=1e6)return '$'+(n/1e6).toFixed(1)+'M';if(n>=1e3)return '$'+Math.round(n/1e3)+'K';return '$'+n}
+function ss(p){if(p.stock<=0)return'critical';if(p.stock<=p.stockMin)return p.stock<=p.stockMin*.5?'critical':'low';return'ok'}
+function ssLabel(s){return s==='ok'?'Normal':s==='low'?'Bajo':'Critico'}
+function cn(id){return CM[id]?.name||id}
+function esc(s){return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\x27").replace(/"/g,"\\x22").replace(/</g,"\\x3c").replace(/>/g,"\\x3e")}
+function h(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function fmtTime(iso){const d=new Date(iso);return d.toLocaleString('es-CL',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}
+function todayStr(){return new Date().toISOString().slice(0,10)}
+function mvKey(m){return m.ticketId?('T'+m.ticketId):('M'+m.id)}
+
+/*===============================================================
+  NAVIGATION
+  ===============================================================*/
+function go(v){
+  curView=v;
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  $('view-'+v).classList.add('active');
+  document.querySelectorAll('#sidebarNav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
+  const t={dashboard:'Dashboard',inventory:'Inventario',alerts:'Alertas de Stock',categories:'Categorias',suppliers:'Proveedores',movements:'Movimientos',reports:'Reportes',settings:'Configuracion'};
+  $('viewTitle').textContent=t[v]||v;
+  closeSidebar();
+  if(v==='dashboard')renderDash();
+  if(v==='inventory'){curPage=1;renderInventory()}
+  if(v==='alerts')renderAlerts();
+  if(v==='categories')renderCats();
+  if(v==='suppliers')renderSuppliers();
+  if(v==='movements'){mvPage=1;renderMovements()}
+  if(v==='settings'){applySettings();$('aboutProdCount').textContent=fmt(products.length);$('aboutMvCount').textContent=fmt(movements.length);checkBackupReminder();$('lockNowBtn').style.display=(settings.pinEnabled&&settings.pin)?'':'none'}
+  if(v==='reports')renderReports();
+}
+function goToProduct(q){
+  go('inventory');
+  $('searchInput').value=q;curPage=1;renderInventory();
+}
+function toggleSidebar(){$('sidebar').classList.toggle('open');$('sidebarOverlay').classList.toggle('show')}
+function closeSidebar(){$('sidebar').classList.remove('open');$('sidebarOverlay').classList.remove('show')}
+$('sidebarOverlay').addEventListener('click',closeSidebar);
+
+function toggleTheme(){
+  const d=document.documentElement,dk=d.getAttribute('data-theme')==='dark';
+  d.setAttribute('data-theme',dk?'light':'dark');
+  if(curView==='dashboard')renderMainChart();
+}
+
+function printView(){
+  $('printDate').textContent=new Date().toLocaleDateString('es-CL',{weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  window.print();
+}
+
+/*===============================================================
+  TOAST & TOOLTIP
+  ===============================================================*/
+function toast(msg,type='success'){
+  const c=$('toasts'),el=document.createElement('div');
+  el.className='toast '+type;
+  const icons={success:'&#10003;',error:'&#10007;',info:'&#8505;'};
+  el.innerHTML='<div class="toast-icon">'+(icons[type]||icons.info)+'</div><span>'+msg+'</span>';
+  c.appendChild(el);
+  setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),250)},3000);
+}
+function toastUndo(msg,type,undoFn){
+  const c=$('toasts'),el=document.createElement('div');
+  el.className='toast '+type;
+  const icons={success:'&#10003;',error:'&#10007;',info:'&#8505;'};
+  el.innerHTML='<div class="toast-icon">'+(icons[type]||icons.info)+'</div><span>'+msg+'</span><button class="toast-action">Deshacer</button>';
+  el.querySelector('.toast-action').onclick=()=>{undoFn();el.classList.add('out');setTimeout(()=>el.remove(),250)};
+  c.appendChild(el);
+  setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),250)},6000);
+}
+function showTip(e,l,v){const t=$('tip');t.querySelector('.tip-label').textContent=l;t.querySelector('.tip-value').textContent=v;t.style.display='block';moveTip(e)}
+function moveTip(e){const t=$('tip');t.style.left=(e.clientX+14)+'px';t.style.top=(e.clientY-12)+'px'}
+function hideTip(){$('tip').style.display='none'}
+
+/*===============================================================
+  DAILY SUMMARY
+  ===============================================================*/
+function getDailySummary(){
+  const today=todayStr();
+  const todayMvs=movements.filter(m=>m.time.slice(0,10)===today);
+  const sales=todayMvs.filter(m=>m.type==='venta');
+  const revenue=sales.reduce((s,m)=>s+m.total,0);
+  const unitsSold=sales.reduce((s,m)=>s+m.qty,0);
+  const totalMvs=todayMvs.length;
+  const productSales={};
+  sales.forEach(m=>{productSales[m.productName]=(productSales[m.productName]||0)+m.total});
+  const entries=Object.entries(productSales).sort((a,b)=>b[1]-a[1]);
+  const topProduct=entries.length?{name:entries[0][0],total:entries[0][1]}:null;
+  return{revenue,unitsSold,totalMvs,topProduct};
+}
+
+function renderDailyRow(){
+  const d=getDailySummary();
+  $('dailyRow').innerHTML=
+    '<div class="daily-tile"><div class="daily-icon" style="background:var(--status-good-bg)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--status-good)" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="daily-info"><div class="dl-label">Ventas hoy</div><div class="dl-value">'+fmtM(d.revenue)+'</div><div class="dl-sub">'+d.unitsSold+' unidades vendidas</div></div></div>'+
+    '<div class="daily-tile"><div class="daily-icon" style="background:var(--status-info-bg)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--status-info)" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="daily-info"><div class="dl-label">Movimientos hoy</div><div class="dl-value">'+d.totalMvs+'</div><div class="dl-sub">Todos los tipos</div></div></div>'+
+    '<div class="daily-tile"><div class="daily-icon" style="background:var(--brand-accent-light)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--brand-accent)" stroke-width="1.8"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg></div><div class="daily-info"><div class="dl-label">Transacciones</div><div class="dl-value">'+new Set(movements.filter(m=>m.time.slice(0,10)===todayStr()&&m.type==='venta').map(mvKey)).size+'</div><div class="dl-sub">Ventas registradas hoy</div></div></div>'+
+    '<div class="daily-tile"><div class="daily-icon" style="background:var(--status-warning-bg)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--status-warning)" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div class="daily-info"><div class="dl-label">Producto top</div><div class="dl-value" style="font-size:15px;word-break:break-word">'+(d.topProduct?d.topProduct.name:'—')+'</div><div class="dl-sub">'+(d.topProduct?fmtM(d.topProduct.total)+' vendido':'Sin ventas hoy')+'</div></div></div>';
+}
+
+/*===============================================================
+  DASHBOARD
+  ===============================================================*/
+function renderDash(){renderDailyRow();renderKPI();renderMainChart();renderStockBar();renderDashAlerts();renderActivity();updateBadge()}
+
+function renderKPI(){
+  const tp=products.length,ts=products.reduce((s,p)=>s+p.stock,0);
+  const tv=products.reduce((s,p)=>s+p.stock*p.pv,0);
+  const al=products.filter(p=>ss(p)!=='ok').length;
+  const margin=products.reduce((s,p)=>s+p.stock*(p.pv-p.pc),0);
+  $('kpiRow').innerHTML=
+    '<div class="stat-tile clickable" onclick="go(\'inventory\')"><div class="st-header"><div><span class="label">Total productos</span><div class="value">'+fmt(tp)+'</div><span class="delta info"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> '+CATS.length+' categorias</span></div><div class="st-icon" style="background:var(--status-info-bg)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--cat-her)" stroke-width="1.8"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg></div></div></div>'+
+    '<div class="stat-tile clickable" onclick="go(\'inventory\')"><div class="st-header"><div><span class="label">Unidades en stock</span><div class="value">'+fmt(ts)+'</div><span class="delta good"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg> Inventario activo</span></div><div class="st-icon" style="background:var(--status-good-bg)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--status-good)" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div></div></div>'+
+    '<div class="stat-tile clickable" onclick="go(\'inventory\')"><div class="st-header"><div><span class="label">Valor del inventario</span><div class="value">'+compact(tv)+'</div><span class="delta good"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg> Margen: '+compact(margin)+'</span></div><div class="st-icon" style="background:var(--brand-accent-light)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--brand-accent)" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div></div></div>'+
+    '<div class="stat-tile clickable" onclick="go(\'alerts\')"><div class="st-header"><div><span class="label">Alertas de stock</span><div class="value">'+al+'</div><span class="delta '+(al>0?'bad':'good')+'">'+(al>0?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg> Requieren atencion':'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Todo en orden')+'</span></div><div class="st-icon" style="background:'+(al>0?'var(--status-critical-bg)':'var(--status-good-bg)')+'"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="'+(al>0?'var(--status-critical)':'var(--status-good)')+'" stroke-width="1.8"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div></div></div>';
+}
+
+function getChartData(){
+  const valByCat={};
+  products.forEach(p=>{valByCat[p.categoria]=(valByCat[p.categoria]||0)+p.stock*p.pv});
+  let items=CATS.map(c=>({id:c.id,name:c.name,value:valByCat[c.id]||0,color:c.color,hex:c.hex})).sort((a,b)=>b.value-a.value);
+  const top=items.slice(0,7);
+  const otherVal=items.slice(7).reduce((s,i)=>s+i.value,0);
+  if(otherVal>0)top.push({name:'Otros',value:otherVal,color:'var(--text-muted)',hex:'#898781'});
+  return{items:top,total:top.reduce((s,i)=>s+i.value,0)};
+}
+
+function setChart(mode){
+  chartMode=mode;
+  document.querySelectorAll('.ct-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.ct-btn[onclick="setChart(\''+mode+'\')"]').classList.add('active');
+  renderMainChart();
+}
+
+function renderMainChart(){
+  const{items,total}=getChartData();
+  if(chartMode==='donut')renderDonut(items,total);
+  else if(chartMode==='hbar')renderDistHBar(items,total);
+  else renderDistVBar(items,total);
+}
+
+function renderDonut(items,total){
+  const r=85,circ=2*Math.PI*r;let offset=0;
+  const arcs=items.map(item=>{
+    const pct=total>0?item.value/total:0;const dash=pct*circ;const gap=circ-dash;const rot=offset*360-90;offset+=pct;
+    return '<circle cx="110" cy="110" r="'+r+'" fill="none" stroke="'+item.color+'" stroke-width="28" stroke-dasharray="'+dash+' '+gap+'" transform="rotate('+rot+' 110 110)" style="transition:stroke-dasharray .6s var(--ease);cursor:pointer" onmouseenter="showTip(event,\''+esc(item.name)+'\',\''+fmtM(item.value)+' ('+(pct*100).toFixed(1)+'%)\')" onmousemove="moveTip(event)" onmouseleave="hideTip()"/>';
+  });
+  const legend=items.map(i=>'<div class="donut-legend-item"><div class="donut-legend-dot" style="background:'+i.color+'"></div><span class="donut-legend-name">'+i.name+'</span><span class="donut-legend-val">'+compact(i.value)+'</span></div>').join('');
+  $('mainChart').innerHTML='<div class="donut-wrap"><div class="donut-svg"><svg viewBox="0 0 220 220" width="220" height="220"><circle cx="110" cy="110" r="'+r+'" fill="none" stroke="var(--surface-input)" stroke-width="28"/>'+arcs.join('')+'</svg><div class="donut-center"><div class="dc-value">'+compact(total)+'</div><div class="dc-label">Valor total</div></div></div><div class="donut-legend">'+legend+'</div></div>';
+}
+
+function renderDistHBar(items,total){
+  const mx=Math.max(...items.map(d=>d.value));
+  $('mainChart').innerHTML=items.map(d=>{
+    const pct=mx>0?(d.value/mx)*100:0;
+    return '<div class="hbar-row" onmouseenter="showTip(event,\''+esc(d.name)+'\',\''+fmtM(d.value)+' ('+(total>0?(d.value/total*100).toFixed(1):0)+'%)\')" onmousemove="moveTip(event)" onmouseleave="hideTip()"><div class="hbar-label">'+d.name+'</div><div class="hbar-track"><div class="hbar-fill" style="width:'+pct+'%;background:'+d.color+'"></div></div><div class="hbar-val">'+compact(d.value)+'</div></div>';
+  }).join('');
+}
+
+function renderDistVBar(items,total){
+  const mx=Math.max(...items.map(d=>d.value));
+  $('mainChart').innerHTML='<div class="vbar-wrap">'+items.map(d=>{
+    const pct=mx>0?(d.value/mx)*100:0;
+    const shortName=d.name.length>12?d.name.substring(0,10)+'..':d.name;
+    return '<div class="vbar-col" onmouseenter="showTip(event,\''+esc(d.name)+'\',\''+fmtM(d.value)+'\')" onmousemove="moveTip(event)" onmouseleave="hideTip()"><div class="vbar-val">'+compact(d.value)+'</div><div class="vbar-bar-wrap"><div class="vbar-bar" style="height:'+pct+'%;background:'+d.color+'"></div></div><div class="vbar-label">'+shortName+'</div></div>';
+  }).join('')+'</div>';
+}
+
+function renderStockBar(){
+  const catStock={};CATS.forEach(c=>catStock[c.id]=0);
+  products.forEach(p=>catStock[p.categoria]=(catStock[p.categoria]||0)+p.stock);
+  const data=CATS.map(c=>({name:c.name,value:catStock[c.id],color:c.color})).sort((a,b)=>b.value-a.value);
+  const mx=Math.max(...data.map(d=>d.value));
+  $('stockBarChart').innerHTML=data.map(d=>{
+    const pct=mx>0?(d.value/mx)*100:0;
+    return '<div class="hbar-row" onmouseenter="showTip(event,\''+esc(d.name)+'\',\''+fmt(d.value)+' unidades\')" onmousemove="moveTip(event)" onmouseleave="hideTip()"><div class="hbar-label">'+d.name+'</div><div class="hbar-track"><div class="hbar-fill" style="width:'+pct+'%;background:'+d.color+'"></div></div><div class="hbar-val">'+fmt(d.value)+'</div></div>';
+  }).join('');
+}
+
+function renderDashAlerts(){
+  const alerts=products.filter(p=>ss(p)!=='ok').sort((a,b)=>(a.stock/a.stockMin)-(b.stock/b.stockMin)).slice(0,6);
+  $('alertCount').textContent=alerts.length+' productos';
+  $('dashAlerts').innerHTML=alerts.length?alerts.map(p=>{
+    const s=ss(p);
+    return '<div class="alert-item" onclick="goToProduct(\''+esc(p.nombre)+'\')"><div class="alert-icon" style="background:'+(s==='critical'?'var(--status-critical-bg)':'var(--status-warning-bg)')+'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="'+(s==='critical'?'var(--status-critical)':'var(--status-warning)')+'" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div class="alert-info"><div class="name">'+h(p.nombre)+'</div><div class="detail">'+cn(p.categoria)+' · Min: '+p.stockMin+' '+h(p.u)+'</div></div><div class="alert-val" style="color:'+(s==='critical'?'var(--status-critical)':'var(--status-warning)')+'">'+p.stock+' '+h(p.u)+'</div></div>';
+  }).join(''):'<div class="empty-state"><p>Sin alertas de stock</p></div>';
+}
+
+function renderActivity(){
+  if(!actionLog.length){
+    $('activityFeed').innerHTML='<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><p>Las acciones que realices apareceran aqui</p></div>';
+    return;
+  }
+  const typeConf={
+    adjust:{color:'var(--status-info)',icon:'&#8693;'},
+    add:{color:'var(--status-good)',icon:'&#43;'},
+    edit:{color:'var(--cat-cer)',icon:'&#9998;'},
+    delete:{color:'var(--status-critical)',icon:'&#10005;'},
+    venta:{color:'var(--status-good)',icon:'&#128722;'},
+    ingreso:{color:'var(--status-info)',icon:'&#128230;'},
+    merma:{color:'var(--status-critical)',icon:'&#128683;'},
+    ajuste_mv:{color:'var(--status-warning)',icon:'&#8693;'}
+  };
+  $('activityFeed').innerHTML=actionLog.slice(0,8).map(a=>{
+    const c=typeConf[a.type]||typeConf.adjust;
+    return '<div class="activity-item"><div class="activity-dot" style="background:'+c.color+'"></div><div><div class="activity-content">'+a.detail+'</div><div class="activity-time">'+fmtTime(a.time)+'</div></div></div>';
+  }).join('');
+}
+
+function updateBadge(){
+  const c=products.filter(p=>ss(p)!=='ok').length;
+  $('alertBadge').textContent=c;$('alertBadge').style.display=c>0?'':'none';
+}
+
+/*===============================================================
+  INVENTORY TABLE
+  ===============================================================*/
+function filtered(){
+  const q=$('searchInput').value.toLowerCase(),cat=$('catFilter').value,stk=$('stockFilter').value,ub=$('ubicFilter').value;
+  return products.filter(p=>{
+    if(q&&!p.nombre.toLowerCase().includes(q)&&!p.sku.toLowerCase().includes(q)&&!p.prov.toLowerCase().includes(q))return false;
+    if(cat&&p.categoria!==cat)return false;
+    if(stk){const s=ss(p);if(stk!==s)return false}
+    if(ub&&p.ub!==ub)return false;
+    return true;
+  });
+}
+function renderInventory(){
+  const f=filtered();
+  f.sort((a,b)=>{
+    let va=a[sortCol],vb=b[sortCol];
+    if(sortCol==='categoria'){va=cn(a.categoria);vb=cn(b.categoria)}
+    if(typeof va==='string')va=va.toLowerCase();
+    if(typeof vb==='string')vb=vb.toLowerCase();
+    return va<vb?(sortDir==='asc'?-1:1):va>vb?(sortDir==='asc'?1:-1):0;
+  });
+  const tp=Math.ceil(f.length/PG);if(curPage>tp)curPage=tp||1;
+  const s=(curPage-1)*PG,pg=f.slice(s,s+PG);
+  $('invSubtitle').textContent=f.length+' productos encontrados';
+  if(!f.length){
+    $('invBody').innerHTML='<tr><td colspan="7"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><p>No se encontraron productos con esos filtros</p></div></td></tr>';
+    $('invPag').innerHTML='';
+    return;
+  }
+  $('invBody').innerHTML=pg.map(p=>{
+    const st=ss(p);
+    const stIcon=st==='ok'?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>':st==='low'?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>':'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+    return '<tr>'+
+      '<td><div class="product-name">'+h(p.nombre)+'</div><div class="product-sku">'+h(p.sku)+'</div></td>'+
+      '<td class="col-hide-m"><span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:'+(CM[p.categoria]?.color||'var(--text-muted)')+';flex-shrink:0"></span>'+cn(p.categoria)+'</span></td>'+
+      '<td><div class="stock-adjust"><button onclick="adjStock('+p.id+',-1)">&#8722;</button><span class="stock-num">'+p.stock+'</span><button onclick="adjStock('+p.id+',1)">+</button></div></td>'+
+      '<td class="col-hide-m"><span class="stock-pill '+st+'">'+stIcon+' '+ssLabel(st)+'</span></td>'+
+      '<td class="col-hide-m" style="font-variant-numeric:tabular-nums">'+fmtM(p.pv)+'</td>'+
+      '<td class="col-hide-m" style="font-size:12.5px;color:var(--text-muted)">'+p.ub+'</td>'+
+      '<td><div style="display:flex;gap:4px">'+
+        '<button class="btn-icon sell" onclick="openCartModal('+p.id+')" title="Vender"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg></button>'+
+        '<button class="btn-icon" onclick="openEditModal('+p.id+')" title="Editar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'+
+        '<button class="btn-icon danger" onclick="delProduct('+p.id+')" title="Eliminar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>'+
+      '</div></td></tr>';
+  }).join('');
+  $('invPag').innerHTML='<span>Mostrando '+(f.length?s+1:0)+'–'+Math.min(s+PG,f.length)+' de '+f.length+'</span>'+
+    '<div class="page-btns"><button onclick="curPage--;renderInventory()" '+(curPage<=1?'disabled':'')+'>&#8249;</button>'+
+    Array.from({length:Math.min(tp,7)},(_,i)=>{
+      let pg;if(tp<=7)pg=i+1;else if(curPage<=4)pg=i+1;else if(curPage>=tp-3)pg=tp-6+i;else pg=curPage-3+i;
+      return '<button class="'+(pg===curPage?'active':'')+'" onclick="curPage='+pg+';renderInventory()">'+pg+'</button>';
+    }).join('')+
+    '<button onclick="curPage++;renderInventory()" '+(curPage>=tp?'disabled':'')+'>&#8250;</button></div>';
+}
+
+function adjStock(id,delta){
+  const p=products.find(x=>x.id===id);if(!p)return;
+  const old=p.stock;
+  const apply=()=>{
+    p.stock=Math.max(0,p.stock+delta);
+    renderInventory();updateBadge();
+    logAction('adjust','Stock de <strong>'+h(p.nombre)+'</strong>: '+old+' &rarr; '+p.stock+' '+h(p.u),p.nombre);
+    toast(h(p.nombre)+': stock &rarr; '+p.stock+' '+h(p.u),delta>0?'success':'info');
+    saveData();
+  };
+  if(settings.confirmBigChanges&&Math.abs(delta)>1&&old>0&&Math.abs(delta)/old>0.5){
+    confirmModal('Cambio grande de stock','Este cambio modifica mas del 50% del stock actual de "'+p.nombre+'". ¿Continuar?',apply,'Continuar');
+  }else{
+    apply();
+  }
+}
+function doSort(col){if(sortCol===col)sortDir=sortDir==='asc'?'desc':'asc';else{sortCol=col;sortDir='asc'}renderInventory()}
+
+/*===============================================================
+  PRODUCT MODAL
+  ===============================================================*/
+function clearFormErrors(){
+  document.querySelectorAll('.form-error').forEach(e=>e.classList.remove('show'));
+  document.querySelectorAll('.form-group input.error, .form-group select.error').forEach(e=>e.classList.remove('error'));
+}
+function showFieldError(fieldId,errId,msg){
+  const f=$(fieldId);if(f)f.classList.add('error');
+  const e=$(errId);if(e){if(msg)e.textContent=msg;e.classList.add('show')}
+}
+
+function openAddModal(){
+  clearFormErrors();
+  $('editId').value='';$('modalTitle').textContent='Nuevo producto';$('saveBtn').textContent='Guardar producto';
+  ['fNombre','fSku','fStock','fStockMin','fPC','fPV','fProv'].forEach(id=>$(id).value='');
+  $('fCat').value=CATS[0].id;$('fUnit').value='unidad';$('fUbic').value='Pasillo 1';
+  $('productModal').classList.add('show');
+}
+function openEditModal(id){
+  clearFormErrors();
+  const p=products.find(x=>x.id===id);if(!p)return;
+  $('editId').value=id;$('modalTitle').textContent='Editar producto';$('saveBtn').textContent='Actualizar';
+  $('fNombre').value=p.nombre;$('fCat').value=p.categoria;$('fSku').value=p.sku;
+  $('fStock').value=p.stock;$('fStockMin').value=p.stockMin;$('fPC').value=p.pc;$('fPV').value=p.pv;
+  $('fUnit').value=p.u;$('fUbic').value=p.ub;$('fProv').value=p.prov;
+  $('productModal').classList.add('show');
+}
+function closeModal(){$('productModal').classList.remove('show')}
+
+function saveProduct(){
+  clearFormErrors();
+  const eid=$('editId').value;
+  const d={nombre:$('fNombre').value.trim(),categoria:$('fCat').value,sku:$('fSku').value.trim(),
+    stock:parseInt($('fStock').value)||0,stockMin:parseInt($('fStockMin').value)||0,
+    pc:parseInt($('fPC').value)||0,pv:parseInt($('fPV').value)||0,
+    u:$('fUnit').value,ub:$('fUbic').value,prov:$('fProv').value.trim()};
+
+  // Validations
+  let valid=true;
+  if(!d.nombre){showFieldError('fNombre','errNombre');valid=false}
+  if(d.stock<0||isNaN(d.stock)){showFieldError('fStock','errStock','El stock debe ser 0 o mayor');valid=false}
+  if(d.stockMin<0||isNaN(d.stockMin)){showFieldError('fStockMin','errStockMin','El stock minimo debe ser 0 o mayor');valid=false}
+  if(!d.pv||d.pv<=0){showFieldError('fPV','errPV','El precio de venta es obligatorio');valid=false}
+  if(d.pc<0){showFieldError('fPC','errPC');valid=false}
+
+  // Duplicate SKU check
+  if(d.sku){
+    const existing=products.find(p=>p.sku.toLowerCase()===d.sku.toLowerCase()&&(eid?p.id!==parseInt(eid):true));
+    if(existing){showFieldError('fSku','errSku','SKU ya existe: '+existing.nombre);valid=false}
+  }
+
+  if(!valid)return;
+
+  const doSave=()=>{
+    if(eid){
+      const i=products.findIndex(p=>p.id===parseInt(eid));
+      if(i>=0)products[i]={...products[i],...d};
+      logAction('edit','Producto editado: <strong>'+h(d.nombre)+'</strong>',d.nombre);
+      toast('Producto actualizado');
+    } else {
+      d.id=nxId++;
+      if(!d.sku)d.sku=d.categoria.toUpperCase()+'-'+String(d.id).padStart(3,'0');
+      products.push(d);
+      logAction('add','Producto agregado: <strong>'+h(d.nombre)+'</strong> ('+h(cn(d.categoria))+')',d.nombre);
+      toast('Producto agregado');
+    }
+    closeModal();renderInventory();updateBadge();
+    if(curView==='dashboard')renderDash();
+    saveData();
+    if(d.pc>0&&d.pv<d.pc){
+      toast('Atencion: el precio de venta es menor al de compra (estas vendiendo con perdida)','info');
+    }
+  };
+
+  if(eid){
+    const i=products.findIndex(p=>p.id===parseInt(eid));
+    const old=i>=0?products[i]:null;
+    if(settings.confirmBigChanges&&old&&old.stock>0&&Math.abs(d.stock-old.stock)/old.stock>0.5&&d.stock!==old.stock){
+      confirmModal('Cambio grande de stock','El stock cambio de '+old.stock+' a '+d.stock+' (mas del 50%). ¿Confirmar?',doSave,'Confirmar');
+      return;
+    }
+  }
+  doSave();
+}
+
+let lastDeletedProduct=null,lastDeletedIndex=-1;
+function delProduct(id){
+  const p=products.find(x=>x.id===id);if(!p)return;
+  confirmModal('Eliminar producto','¿Eliminar "'+p.nombre+'" del inventario? Podras deshacer esta accion por unos segundos.',()=>{
+    lastDeletedIndex=products.findIndex(x=>x.id===id);
+    lastDeletedProduct=p;
+    products=products.filter(x=>x.id!==id);
+    logAction('delete','Producto eliminado: <strong>'+h(p.nombre)+'</strong> ('+h(cn(p.categoria))+')',p.nombre);
+    toastUndo(h(p.nombre)+' fue eliminado','info',undoDeleteProduct);
+    renderInventory();updateBadge();
+    if(curView==='dashboard')renderDash();
+    saveData();
+  },'Eliminar');
+}
+function undoDeleteProduct(){
+  if(!lastDeletedProduct)return;
+  const idx=lastDeletedIndex>=0&&lastDeletedIndex<=products.length?lastDeletedIndex:products.length;
+  products.splice(idx,0,lastDeletedProduct);
+  toast(h(lastDeletedProduct.nombre)+' fue restaurado');
+  lastDeletedProduct=null;lastDeletedIndex=-1;
+  renderInventory();updateBadge();
+  if(curView==='dashboard')renderDash();
+  saveData();
+}
+
+/*===============================================================
+  MOVEMENT / SALE MODAL
+  ===============================================================*/
+function openMovementModal(type,productId){
+  clearFormErrors();
+  $('mvType').value=type||'ingreso';
+  onMvTypeChange();
+  // Populate product list
+  const sel=$('mvProduct');
+  sel.innerHTML='<option value="">Seleccionar producto...</option>'+
+    products.map(p=>'<option value="'+p.id+'">'+h(p.nombre)+' (Stock: '+p.stock+' '+h(p.u)+')</option>').join('');
+  if(productId)sel.value=productId;
+  onMvProductChange();
+  $('mvQty').value=1;
+  $('mvNote').value='';
+  calcMvTotal();
+  $('movementModal').classList.add('show');
+}
+function closeMovementModal(){$('movementModal').classList.remove('show')}
+
+function onMvTypeChange(){
+  const type=$('mvType').value;
+  const titles={ingreso:'Registrar ingreso',merma:'Registrar merma',ajuste:'Ajuste de inventario'};
+  $('mvModalTitle').textContent=titles[type]||'Movimiento';
+  const btnLabels={ingreso:'Registrar ingreso',merma:'Registrar merma',ajuste:'Registrar ajuste'};
+  $('saveMvBtn').textContent=btnLabels[type]||'Registrar';
+  const priceLabels={ingreso:'Precio unitario de compra ($)',merma:'Valor unitario ($)',ajuste:'Precio referencia ($)'};
+  $('mvPriceLabel').textContent=priceLabels[type]||'Precio ($)';
+  $('mvTotalRow').style.display=(type==='ingreso')?'':'none';
+  $('mvPaymentRow').style.display=(type==='ingreso')?'':'none';
+  onMvProductChange();
+}
+
+function onMvProductChange(){
+  const pid=parseInt($('mvProduct').value);
+  const p=products.find(x=>x.id===pid);
+  const type=$('mvType').value;
+  if(p){
+    $('mvPrice').value=p.pc||0;
+  }else{
+    $('mvPrice').value=0;
+  }
+  calcMvTotal();
+}
+
+function calcMvTotal(){
+  const qty=parseInt($('mvQty').value)||0;
+  const price=parseInt($('mvPrice').value)||0;
+  const type=$('mvType').value;
+  const total=qty*price;
+  if(settings.ivaEnabled&&(type==='venta')){
+    const net=total/(1+settings.ivaRate/100);
+    const iva=total-net;
+    $('mvTotalDisplay').innerHTML='<div style="font-size:12px;color:var(--text-muted);font-weight:500;text-align:right">Neto: '+fmtM(Math.round(net))+' &nbsp;+&nbsp; IVA ('+settings.ivaRate+'%): '+fmtM(Math.round(iva))+'</div>'+fmtM(total);
+  }else{
+    $('mvTotalDisplay').textContent=fmtM(total);
+  }
+}
+
+function saveMovement(){
+  clearFormErrors();
+  const type=$('mvType').value;
+  const pid=parseInt($('mvProduct').value);
+  const qty=parseInt($('mvQty').value)||0;
+  const price=parseInt($('mvPrice').value)||0;
+  const note=$('mvNote').value.trim();
+  const payment=$('mvPayment')?$('mvPayment').value:'';
+
+  let valid=true;
+  if(!pid){showFieldError('mvProduct','errMvProduct');valid=false}
+  if(qty<=0){showFieldError('mvQty','errMvQty');valid=false}
+  if(!valid)return;
+
+  const p=products.find(x=>x.id===pid);
+  if(!p){toast('Producto no encontrado','error');return}
+
+  if(type==='merma'&&qty>p.stock){
+    toast('Stock insuficiente. Disponible: '+p.stock+' '+h(p.u),'error');
+    return;
+  }
+  if(price<0){toast('El precio no puede ser negativo','error');return}
+
+  // Apply stock change
+  const oldStock=p.stock;
+  if(type==='ingreso')p.stock+=qty;
+  else if(type==='merma')p.stock-=qty;
+  else if(type==='ajuste')p.stock=qty; // Ajuste sets absolute value
+
+  const total=qty*price;
+
+  // Create movement record
+  const mv={
+    id:mvId++,
+    time:new Date().toISOString(),
+    type,
+    productId:p.id,
+    productName:p.nombre,
+    categoria:p.categoria,
+    qty,
+    unitPrice:price,
+    total,
+    payment:payment||'',
+    note,
+    stockBefore:oldStock,
+    stockAfter:p.stock
+  };
+  movements.unshift(mv);
+
+  // Log action
+  const typeLabels={ingreso:'Ingreso',merma:'Merma',ajuste:'Ajuste'};
+  const actionType=type==='ajuste'?'ajuste_mv':type;
+  logAction(actionType,'<strong>'+typeLabels[type]+':</strong> '+qty+' '+h(p.u)+' de <strong>'+h(p.nombre)+'</strong>'+(total>0?' por '+fmtM(total):''),p.nombre);
+
+  closeMovementModal();
+  updateBadge();
+  if(curView==='dashboard')renderDash();
+  if(curView==='inventory')renderInventory();
+  if(curView==='movements')renderMovements();
+  saveData();
+  toast(typeLabels[type]+' registrado: '+h(p.nombre)+' x'+qty);
+}
+
+/*===============================================================
+  CART / POS SALE
+  ===============================================================*/
+let cart=[],ticketId=1;
+function openCartModal(productId){
+  cart=[];
+  $('cartClient').value='';
+  $('cartPayment').value='efectivo';
+  $('cartSearchInput').value='';
+  $('cartSuggestions').classList.remove('show');
+  if(productId)addToCart(productId);
+  renderCartTable();
+  $('cartModal').classList.add('show');
+  setTimeout(()=>$('cartSearchInput').focus(),50);
+}
+function closeCartModal(){$('cartModal').classList.remove('show')}
+
+function renderCartSuggestions(){
+  const q=$('cartSearchInput').value.trim().toLowerCase();
+  const box=$('cartSuggestions');
+  if(!q){box.classList.remove('show');box.innerHTML='';return}
+  const matches=products.filter(p=>p.nombre.toLowerCase().includes(q)||p.sku.toLowerCase().includes(q)).slice(0,8);
+  if(!matches.length){
+    box.innerHTML='<div class="cart-sugg-empty">Sin resultados para "'+h(q)+'"</div>';
+  }else{
+    box.innerHTML=matches.map(p=>{
+      const low=p.stock<=0;
+      return '<div class="cart-sugg-item" onclick="'+(low?'':'addToCart('+p.id+')')+'" style="'+(low?'opacity:.45;cursor:default':'')+'">'+
+        '<div><div class="cs-name">'+h(p.nombre)+'</div><div class="cs-meta">'+h(p.sku)+' &middot; '+cn(p.categoria)+'</div></div>'+
+        '<div style="text-align:right"><div class="cs-name">'+fmtM(p.pv)+'</div><div class="cs-meta">'+(low?'Sin stock':'Stock: '+p.stock+' '+p.u)+'</div></div>'+
+      '</div>';
+    }).join('');
+  }
+  box.classList.add('show');
+}
+function handleCartSearchKey(e){
+  if(e.key!=='Enter')return;
+  e.preventDefault();
+  const q=$('cartSearchInput').value.trim();
+  if(!q)return;
+  const exact=products.find(p=>p.sku.toLowerCase()===q.toLowerCase());
+  if(exact){addToCart(exact.id);return}
+  const matches=products.filter(p=>p.nombre.toLowerCase().includes(q.toLowerCase())||p.sku.toLowerCase().includes(q.toLowerCase()));
+  if(matches.length===1){addToCart(matches[0].id)}
+  else if(matches.length>1){/* keep suggestions open for manual pick */}
+  else{toast('No se encontro ningun producto con "'+h(q)+'"','error')}
+}
+function addToCart(productId){
+  const p=products.find(x=>x.id===productId);
+  if(!p)return;
+  if(p.stock<=0){toast(h(p.nombre)+' no tiene stock disponible','error');return}
+  const line=cart.find(c=>c.productId===productId);
+  if(line){
+    if(line.qty+1>p.stock){toast('No hay mas stock disponible de '+h(p.nombre),'error');return}
+    line.qty++;
+  }else{
+    cart.push({productId,qty:1,price:p.pv});
+  }
+  $('cartSearchInput').value='';
+  $('cartSuggestions').classList.remove('show');
+  renderCartTable();
+  $('cartSearchInput').focus();
+}
+function removeFromCart(idx){cart.splice(idx,1);renderCartTable()}
+function updateCartQty(idx,val){
+  const p=products.find(x=>x.id===cart[idx].productId);
+  let qty=parseInt(val)||0;
+  if(qty<1)qty=1;
+  if(p&&qty>p.stock){toast('Stock disponible: '+p.stock+' '+p.u,'error');qty=p.stock||1}
+  cart[idx].qty=qty;
+  renderCartTable();
+}
+function updateCartPrice(idx,val){
+  let price=parseInt(val);
+  if(isNaN(price)||price<0)price=0;
+  cart[idx].price=price;
+  renderCartTable();
+}
+function renderCartTable(){
+  if(!cart.length){
+    $('cartBody').innerHTML='<tr><td colspan="5"><div class="cart-empty">Agrega productos para comenzar la venta</div></td></tr>';
+  }else{
+    $('cartBody').innerHTML=cart.map((c,idx)=>{
+      const p=products.find(x=>x.id===c.productId);
+      if(!p)return '';
+      return '<tr><td><div class="product-name" style="font-size:13px">'+h(p.nombre)+'</div><div class="product-sku">'+h(p.sku)+'</div></td>'+
+        '<td><input class="cart-qty-input" type="number" min="1" value="'+c.qty+'" onchange="updateCartQty('+idx+',this.value)"></td>'+
+        '<td><input class="cart-price-input" type="number" min="0" value="'+c.price+'" onchange="updateCartPrice('+idx+',this.value)"></td>'+
+        '<td style="font-weight:600;font-variant-numeric:tabular-nums">'+fmtM(c.qty*c.price)+'</td>'+
+        '<td><button class="cart-remove" onclick="removeFromCart('+idx+')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button></td></tr>';
+    }).join('');
+  }
+  calcCartTotal();
+}
+function calcCartTotal(){
+  const total=cart.reduce((s,c)=>s+c.qty*c.price,0);
+  $('cartTotalValue').textContent=fmtM(total);
+  if(settings.ivaEnabled&&total>0){
+    const net=total/(1+settings.ivaRate/100),iva=total-net;
+    $('cartIvaLine').textContent='Neto '+fmtM(Math.round(net))+' + IVA ('+settings.ivaRate+'%) '+fmtM(Math.round(iva));
+  }else{
+    $('cartIvaLine').textContent='';
+  }
+  $('cartConfirmBtn').disabled=!cart.length;
+}
+function confirmCartSale(){
+  if(!cart.length){toast('Agrega al menos un producto','error');return}
+  for(const c of cart){
+    const p=products.find(x=>x.id===c.productId);
+    if(!p||c.qty>p.stock){toast('Stock insuficiente para '+(p?h(p.nombre):'un producto'),'error');return}
+  }
+  const client=$('cartClient').value.trim();
+  const payment=$('cartPayment').value;
+  const tId=ticketId++;
+  const ticketMvs=[];
+  cart.forEach(c=>{
+    const p=products.find(x=>x.id===c.productId);
+    const oldStock=p.stock;
+    p.stock-=c.qty;
+    const mv={id:mvId++,time:new Date().toISOString(),type:'venta',productId:p.id,productName:p.nombre,categoria:p.categoria,
+      qty:c.qty,unitPrice:c.price,total:c.qty*c.price,payment,client,ticketId:tId,stockBefore:oldStock,stockAfter:p.stock,note:''};
+    movements.unshift(mv);
+    ticketMvs.push(mv);
+  });
+  const grandTotal=ticketMvs.reduce((s,m)=>s+m.total,0);
+  logAction('venta','<strong>Venta #'+String(tId).padStart(5,'0')+':</strong> '+cart.length+' producto'+(cart.length>1?'s':'')+' por '+fmtM(grandTotal),ticketMvs[0].productName);
+  closeCartModal();
+  updateBadge();
+  if(curView==='dashboard')renderDash();
+  if(curView==='inventory')renderInventory();
+  if(curView==='movements')renderMovements();
+  saveData();
+  toastPrint('Venta registrada: '+fmtM(grandTotal)+' ('+cart.length+' producto'+(cart.length>1?'s':'')+')',ticketMvs);
+}
+
+function toastPrint(msg,ticketMvs){
+  const c=$('toasts'),el=document.createElement('div');
+  el.className='toast success';
+  el.innerHTML='<div class="toast-icon">&#10003;</div><span>'+msg+'</span><button class="toast-action">Imprimir boleta</button>';
+  el.querySelector('.toast-action').onclick=()=>{printReceipt(ticketMvs);el.classList.add('out');setTimeout(()=>el.remove(),250)};
+  c.appendChild(el);
+  setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),250)},6000);
+}
+
+/*===============================================================
+  RECEIPT / BOLETA (supports multi-item ticket)
+  ===============================================================*/
+function printReceipt(ticketMvs){
+  const name=settings.storeName||'Mi Ferreteria';
+  const total=ticketMvs.reduce((s,m)=>s+m.total,0);
+  let ivaLine='';
+  if(settings.ivaEnabled){
+    const net=total/(1+settings.ivaRate/100),iva=total-net;
+    ivaLine='<div class="r-row"><span>Neto</span><span>'+fmtM(Math.round(net))+'</span></div><div class="r-row"><span>IVA ('+settings.ivaRate+'%)</span><span>'+fmtM(Math.round(iva))+'</span></div>';
+  }
+  const paymentLabels={efectivo:'Efectivo',debito:'Tarjeta debito',credito:'Tarjeta credito',transferencia:'Transferencia'};
+  const first=ticketMvs[0];
+  const dt=new Date(first.time);
+  const itemLines=ticketMvs.map(m=>
+    '<div class="r-row"><span>'+h(m.productName)+'</span><span></span></div>'+
+    '<div class="r-row"><span>'+m.qty+' x '+fmtM(m.unitPrice)+'</span><span>'+fmtM(m.total)+'</span></div>'
+  ).join('');
+  $('receiptBox').innerHTML=
+    '<h4>'+h(name)+'</h4>'+
+    (settings.address?'<div class="r-center">'+h(settings.address)+'</div>':'')+
+    (settings.phone?'<div class="r-center">'+h(settings.phone)+'</div>':'')+
+    (settings.rut?'<div class="r-center">RUT: '+h(settings.rut)+'</div>':'')+
+    '<div class="r-line"></div>'+
+    '<div class="r-row"><span>Fecha</span><span>'+dt.toLocaleDateString('es-CL')+' '+dt.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})+'</span></div>'+
+    '<div class="r-row"><span>N°</span><span>'+String(first.ticketId||first.id).padStart(5,'0')+'</span></div>'+
+    (first.client?'<div class="r-row"><span>Cliente</span><span>'+h(first.client)+'</span></div>':'')+
+    '<div class="r-line"></div>'+
+    itemLines+
+    '<div class="r-line"></div>'+
+    ivaLine+
+    '<div class="r-row" style="font-weight:700;font-size:14px"><span>TOTAL</span><span>'+fmtM(total)+'</span></div>'+
+    (first.payment?'<div class="r-row"><span>Pago</span><span>'+(paymentLabels[first.payment]||first.payment)+'</span></div>':'')+
+    '<div class="r-line"></div>'+
+    '<div class="r-center">Gracias por su compra</div>';
+  document.body.classList.add('receipt-print');
+  const cleanup=()=>{document.body.classList.remove('receipt-print');window.removeEventListener('afterprint',cleanup)};
+  window.addEventListener('afterprint',cleanup);
+  window.print();
+  setTimeout(cleanup,3000); // fallback for browsers that never fire afterprint
+}
+
+/*===============================================================
+  MOVEMENTS VIEW
+  ===============================================================*/
+function setMvRange(range){
+  mvRange=range;
+  mvPage=1;
+  document.querySelectorAll('#view-movements .mv-chip').forEach(c=>c.classList.toggle('active',c.dataset.range===range));
+  renderMovements();
+}
+
+function filteredMovements(){
+  const now=new Date();
+  const today=todayStr();
+  let filtered=movements;
+
+  // Date range filter
+  if(mvRange==='today'){
+    filtered=filtered.filter(m=>m.time.slice(0,10)===today);
+  }else if(mvRange==='week'){
+    const weekAgo=new Date(now.getTime()-7*24*60*60*1000).toISOString();
+    filtered=filtered.filter(m=>m.time>=weekAgo);
+  }else if(mvRange==='month'){
+    const monthAgo=new Date(now.getTime()-30*24*60*60*1000).toISOString();
+    filtered=filtered.filter(m=>m.time>=monthAgo);
+  }
+
+  // Type filter
+  const typeF=$('mvTypeFilter')?.value;
+  if(typeF)filtered=filtered.filter(m=>m.type===typeF);
+
+  // Search filter
+  const q=$('mvSearch')?.value?.toLowerCase();
+  if(q)filtered=filtered.filter(m=>m.productName.toLowerCase().includes(q));
+
+  return filtered;
+}
+
+function renderMovements(){
+  const f=filteredMovements();
+
+  // KPIs for this period
+  const sales=f.filter(m=>m.type==='venta');
+  const revenue=sales.reduce((s,m)=>s+m.total,0);
+  const ingresos=f.filter(m=>m.type==='ingreso');
+  const mermas=f.filter(m=>m.type==='merma');
+  const ingTotal=ingresos.reduce((s,m)=>s+m.total,0);
+
+  const mvTicketCount=new Set(sales.map(mvKey)).size;
+  $('mvKpi').innerHTML=
+    '<div class="stat-tile"><div class="st-header"><div><span class="label">Total ventas</span><div class="value">'+fmtM(revenue)+'</div><span class="delta good">'+mvTicketCount+' transaccion'+(mvTicketCount!==1?'es':'')+'</span></div></div></div>'+
+    '<div class="stat-tile"><div class="st-header"><div><span class="label">Unidades vendidas</span><div class="value">'+fmt(sales.reduce((s,m)=>s+m.qty,0))+'</div></div></div></div>'+
+    '<div class="stat-tile"><div class="st-header"><div><span class="label">Ingresos registrados</span><div class="value">'+fmt(ingresos.length)+'</div><span class="delta info">'+fmtM(ingTotal)+' en compras</span></div></div></div>'+
+    '<div class="stat-tile"><div class="st-header"><div><span class="label">Mermas</span><div class="value" style="color:var(--status-critical)">'+mermas.length+'</div><span class="delta bad">'+fmt(mermas.reduce((s,m)=>s+m.qty,0))+' unidades perdidas</span></div></div></div>';
+
+  // Paginate
+  const tp=Math.ceil(f.length/MV_PG);if(mvPage>tp)mvPage=tp||1;
+  const s=(mvPage-1)*MV_PG,pg=f.slice(s,s+MV_PG);
+
+  if(!f.length){
+    $('mvTableWrap').innerHTML='<div class="empty-state" style="padding:48px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><p>Sin movimientos en este periodo.<br>Registra ventas, ingresos o ajustes para verlos aqui.</p></div>';
+    $('mvPag').innerHTML='';
+    return;
+  }
+
+  const typeLabels={venta:'Venta',ingreso:'Ingreso',merma:'Merma',ajuste:'Ajuste'};
+  const mvPayLabels={efectivo:'Efectivo',debito:'Tarjeta debito',credito:'Tarjeta credito',transferencia:'Transferencia'};
+  $('mvTableWrap').innerHTML='<table class="data-table"><thead><tr>'+
+    '<th>Fecha / Hora</th><th>Tipo</th><th>Producto</th><th class="col-hide-m">Cantidad</th><th class="col-hide-m">Precio unit.</th><th>Total</th><th class="col-hide-m">Stock</th>'+
+    '</tr></thead><tbody>'+pg.map(m=>{
+    const dt=new Date(m.time);
+    return '<tr>'+
+      '<td style="font-variant-numeric:tabular-nums;color:var(--text-muted);font-size:13px;white-space:nowrap">'+dt.toLocaleDateString('es-CL')+' '+dt.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})+'</td>'+
+      '<td><span class="mv-badge '+m.type+'">'+typeLabels[m.type]+'</span></td>'+
+      '<td><div class="product-name" style="font-size:13px">'+h(m.productName)+'</div>'+(m.client?'<div style="font-size:11px;color:var(--text-muted);margin-top:1px">Cliente: '+h(m.client)+'</div>':'')+(m.payment?'<div style="font-size:11px;color:var(--text-muted);margin-top:1px">'+h(mvPayLabels[m.payment]||m.payment)+'</div>':'')+(m.note?'<div style="font-size:11px;color:var(--text-muted);margin-top:1px">'+h(m.note)+'</div>':'')+'</td>'+
+      '<td class="col-hide-m" style="font-variant-numeric:tabular-nums">'+m.qty+'</td>'+
+      '<td class="col-hide-m" style="font-variant-numeric:tabular-nums">'+fmtM(m.unitPrice)+'</td>'+
+      '<td style="font-weight:600;font-variant-numeric:tabular-nums;color:'+(m.type==='venta'?'var(--status-good)':m.type==='ingreso'?'var(--status-info)':'var(--text-primary)')+'">'+fmtM(m.total)+'</td>'+
+      '<td class="col-hide-m" style="font-size:12px;color:var(--text-muted)">'+m.stockBefore+' &rarr; '+m.stockAfter+'</td>'+
+    '</tr>';
+  }).join('')+'</tbody></table>';
+
+  $('mvPag').innerHTML='<span>Mostrando '+(f.length?s+1:0)+'–'+Math.min(s+MV_PG,f.length)+' de '+f.length+' movimientos</span>'+
+    '<div class="page-btns"><button onclick="mvPage--;renderMovements()" '+(mvPage<=1?'disabled':'')+'>&#8249;</button>'+
+    Array.from({length:Math.min(tp,7)},(_,i)=>{
+      let pg;if(tp<=7)pg=i+1;else if(mvPage<=4)pg=i+1;else if(mvPage>=tp-3)pg=tp-6+i;else pg=mvPage-3+i;
+      return '<button class="'+(pg===mvPage?'active':'')+'" onclick="mvPage='+pg+';renderMovements()">'+pg+'</button>';
+    }).join('')+
+    '<button onclick="mvPage++;renderMovements()" '+(mvPage>=tp?'disabled':'')+'>&#8250;</button></div>';
+}
+
+function clearMovements(){
+  confirmModal('Limpiar historial','¿Limpiar todo el historial de movimientos? Esta accion no se puede deshacer.',()=>{
+    movements=[];mvId=1;ticketId=1;actionLog=[];
+    renderMovements();
+    if(curView==='dashboard')renderDash();
+    toast('Historial de movimientos limpiado','info');
+    saveData();
+  },'Limpiar');
+}
+
+/*===============================================================
+  ALERTS VIEW
+  ===============================================================*/
+function renderAlerts(){
+  const low=products.filter(p=>ss(p)!=='ok');
+  const crit=low.filter(p=>ss(p)==='critical'),warn=low.filter(p=>ss(p)==='low');
+  const repCost=low.reduce((s,p)=>s+Math.max(0,p.stockMin-p.stock)*p.pc,0);
+  $('alertKpi').innerHTML=
+    '<div class="stat-tile"><div class="st-header"><div><span class="label">Total alertas</span><div class="value">'+low.length+'</div></div></div></div>'+
+    '<div class="stat-tile"><div class="st-header"><div><span class="label">Stock critico</span><div class="value" style="color:var(--status-critical)">'+crit.length+'</div><span class="delta bad">Reposicion urgente</span></div></div></div>'+
+    '<div class="stat-tile"><div class="st-header"><div><span class="label">Stock bajo</span><div class="value" style="color:var(--status-warning)">'+warn.length+'</div><span class="delta warn">Programar pedido</span></div></div></div>'+
+    '<div class="stat-tile"><div class="st-header"><div><span class="label">Costo reposicion</span><div class="value">'+compact(repCost)+'</div><span class="delta info">Precio compra estimado</span></div></div></div>';
+  const renderList=(items,el)=>{
+    $(el).innerHTML=items.length?items.sort((a,b)=>(a.stock/a.stockMin)-(b.stock/b.stockMin)).map(p=>{
+      const s=ss(p),need=Math.max(0,p.stockMin-p.stock);
+      return '<div class="alert-item" onclick="goToProduct(\''+esc(p.nombre)+'\')">'+
+        '<div class="alert-icon" style="background:'+(s==='critical'?'var(--status-critical-bg)':'var(--status-warning-bg)')+'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="'+(s==='critical'?'var(--status-critical)':'var(--status-warning)')+'" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>'+
+        '<div class="alert-info"><div class="name">'+h(p.nombre)+'</div><div class="detail">'+cn(p.categoria)+' · '+(need>0?'Necesita: +'+need+' '+h(p.u):'En el minimo')+' · '+h(p.prov)+'</div></div>'+
+        '<div style="text-align:right"><div class="alert-val" style="color:'+(s==='critical'?'var(--status-critical)':'var(--status-warning)')+'">'+p.stock+' / '+p.stockMin+'</div><div style="font-size:11px;color:var(--text-muted)">actual / min</div></div></div>';
+    }).join(''):'<div class="empty-state"><p>Sin alertas</p></div>';
+  };
+  renderList(crit,'criticalList');renderList(warn,'lowList');
+}
+
+/*===============================================================
+  CATEGORIES VIEW
+  ===============================================================*/
+function renderCats(){
+  const maxStock=Math.max(...CATS.map(c=>products.filter(p=>p.categoria===c.id).reduce((s,p)=>s+p.stock,0)));
+  $('catGrid').innerHTML=CATS.map(c=>{
+    const cp=products.filter(p=>p.categoria===c.id);
+    const ts=cp.reduce((s,p)=>s+p.stock,0);
+    const tv=cp.reduce((s,p)=>s+p.stock*p.pv,0);
+    const al=cp.filter(p=>ss(p)!=='ok').length;
+    const pct=maxStock>0?(ts/maxStock)*100:0;
+    return '<div class="cat-card" onclick="filterByCat(\''+c.id+'\')">'+
+      '<div class="cat-card-top"><div class="cat-icon" style="background:'+c.color+'22">'+c.icon+'</div>'+(al>0?'<span class="cat-badge" style="background:var(--status-critical-bg);color:var(--status-critical)">'+al+' alerta'+(al>1?'s':'')+'</span>':'')+'</div>'+
+      '<div class="cat-name">'+c.name+'</div>'+
+      '<div class="cat-row"><span>Productos</span><strong>'+cp.length+'</strong></div>'+
+      '<div class="cat-row"><span>Stock total</span><strong>'+fmt(ts)+'</strong></div>'+
+      '<div class="cat-row"><span>Valor inventario</span><strong>'+compact(tv)+'</strong></div>'+
+      '<div class="cat-progress"><div class="cat-progress-fill" style="width:'+pct+'%;background:'+c.color+'"></div></div>'+
+    '</div>';
+  }).join('');
+}
+function filterByCat(id){go('inventory');$('catFilter').value=id;curPage=1;renderInventory()}
+
+/*===============================================================
+  SUPPLIERS VIEW
+  ===============================================================*/
+function renderSuppliers(){
+  const activeSupp=suppliers.filter(s=>products.some(p=>p.prov===s.name)).length;
+  $('suppKpi').innerHTML=
+    '<div class="stat-tile"><div class="st-header"><div><span class="label">Total proveedores</span><div class="value">'+suppliers.length+'</div></div></div></div>'+
+    '<div class="stat-tile"><div class="st-header"><div><span class="label">Proveedores activos</span><div class="value">'+activeSupp+'</div><span class="delta good">Con productos en stock</span></div></div></div>'+
+    '<div class="stat-tile"><div class="st-header"><div><span class="label">Categorias cubiertas</span><div class="value">'+CATS.length+'</div></div></div></div>'+
+    '<div class="stat-tile"><div class="st-header"><div><span class="label">Productos gestionados</span><div class="value">'+products.length+'</div></div></div></div>';
+  $('suppGrid').innerHTML=suppliers.map(s=>{
+    const sp=products.filter(p=>p.prov===s.name);
+    const tv=sp.reduce((a,p)=>a+p.stock*p.pv,0);
+    return '<div class="supplier-card" onclick="goToProduct(\'\');$(\'searchInput\').value=\'\';setTimeout(()=>{$(\'searchInput\').value=\''+esc(s.name)+'\';curPage=1;renderInventory()},50)" style="cursor:pointer">'+
+      '<div class="supplier-top">'+
+        '<div class="supplier-avatar" style="background:'+s.color+'">'+s.name.split(' ').map(w=>w[0]).slice(0,2).join('')+'</div>'+
+        '<div><div class="supplier-name">'+s.name+'</div><div class="supplier-type">'+s.type+'</div></div>'+
+      '</div>'+
+      '<div class="supplier-meta">'+
+        '<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>'+s.contact+'</span>'+
+        '<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>'+s.email+'</span>'+
+      '</div>'+
+      '<div class="supplier-stats">'+
+        '<div class="supplier-stat"><div class="ss-val">'+sp.length+'</div><div class="ss-label">Productos</div></div>'+
+        '<div class="supplier-stat"><div class="ss-val">'+fmt(sp.reduce((a,p)=>a+p.stock,0))+'</div><div class="ss-label">Unidades</div></div>'+
+        '<div class="supplier-stat"><div class="ss-val">'+compact(tv)+'</div><div class="ss-label">Valor</div></div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+/*===============================================================
+  REPORTS
+  ===============================================================*/
+let reportRange=30;
+function setReportRange(days){
+  reportRange=days;
+  document.querySelectorAll('#view-reports .mv-chip').forEach(c=>c.classList.toggle('active',parseInt(c.dataset.rrange)===days));
+  renderReports();
+}
+function getReportMovements(){
+  if(!reportRange)return movements;
+  const since=new Date(Date.now()-reportRange*24*60*60*1000).toISOString();
+  return movements.filter(m=>m.time>=since);
+}
+function renderReports(){
+  const mvs=getReportMovements();
+  const sales=mvs.filter(m=>m.type==='venta');
+  const revenue=sales.reduce((s,m)=>s+m.total,0);
+  const unitsSold=sales.reduce((s,m)=>s+m.qty,0);
+  const ticketIds=new Set(sales.map(mvKey));
+  const avgTicket=ticketIds.size?revenue/ticketIds.size:0;
+  let cogs=0;
+  sales.forEach(m=>{const p=products.find(x=>x.id===m.productId);if(p)cogs+=p.pc*m.qty});
+  const grossMargin=revenue-cogs;
+  const rangeLabel=reportRange?'ultimos '+reportRange+' dias':'todo el historial';
+
+  $('reportKpi').innerHTML=
+    '<div class="stat-tile"><div class="st-header"><div><span class="label">Ventas totales</span><div class="value">'+compact(revenue)+'</div><span class="delta good">'+ticketIds.size+' transaccion'+(ticketIds.size!==1?'es':'')+'</span></div></div></div>'+
+    '<div class="stat-tile"><div class="st-header"><div><span class="label">Ticket promedio</span><div class="value">'+fmtM(Math.round(avgTicket))+'</div><span class="delta info">'+ticketIds.size+' venta'+(ticketIds.size!==1?'s':'')+'</span></div></div></div>'+
+    '<div class="stat-tile"><div class="st-header"><div><span class="label">Unidades vendidas</span><div class="value">'+fmt(unitsSold)+'</div></div></div></div>'+
+    '<div class="stat-tile"><div class="st-header"><div><span class="label">Margen bruto estimado</span><div class="value">'+compact(grossMargin)+'</div><span class="delta '+(grossMargin>=0?'good':'bad')+'">Sobre costo de compra</span></div></div></div>';
+
+  $('trendSubtitle').textContent='Ingresos por venta &middot; '+rangeLabel;
+  renderTrendChart(sales);
+
+  // Top sellers
+  const byProduct={};
+  sales.forEach(m=>{
+    if(!byProduct[m.productId])byProduct[m.productId]={name:m.productName,qty:0,total:0};
+    byProduct[m.productId].qty+=m.qty;byProduct[m.productId].total+=m.total;
+  });
+  const top=Object.values(byProduct).sort((a,b)=>b.total-a.total).slice(0,8);
+  $('topSellersList').innerHTML=top.length?top.map((t,i)=>
+    '<div class="rank-row"><div class="rank-num">'+(i+1)+'</div><div class="rank-info"><div class="ri-name">'+h(t.name)+'</div><div class="ri-sub">'+t.qty+' unidades vendidas</div></div><div class="rank-val">'+fmtM(t.total)+'</div></div>'
+  ).join(''):'<div class="empty-state"><p>Sin ventas en este periodo</p></div>';
+
+  // Dead stock: products with stock but no sale in range
+  const soldIds=new Set(Object.keys(byProduct).map(Number));
+  const dead=products.filter(p=>p.stock>0&&!soldIds.has(p.id)).sort((a,b)=>(b.stock*b.pv)-(a.stock*a.pv)).slice(0,8);
+  $('deadStockList').innerHTML=dead.length?dead.map(p=>
+    '<div class="rank-row" style="cursor:pointer" onclick="goToProduct(\''+esc(p.nombre)+'\')"><div class="alert-icon" style="background:var(--status-warning-bg);width:32px;height:32px;border-radius:8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--status-warning)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="rank-info"><div class="ri-name">'+h(p.nombre)+'</div><div class="ri-sub">'+p.stock+' '+p.u+' en bodega</div></div><div class="rank-val">'+compact(p.stock*p.pv)+'</div></div>'
+  ).join(''):'<div class="empty-state"><p>Todos los productos han tenido movimiento</p></div>';
+
+  // Margin by category
+  const catMargin=CATS.map(c=>{
+    const cp=products.filter(p=>p.categoria===c.id);
+    return{name:c.name,color:c.color,margin:cp.reduce((s,p)=>s+p.stock*(p.pv-p.pc),0)};
+  }).filter(c=>c.margin!==0).sort((a,b)=>b.margin-a.margin);
+  const mxMargin=Math.max(...catMargin.map(c=>Math.abs(c.margin)),1);
+  $('marginList').innerHTML=catMargin.length?'<div style="padding:16px 20px">'+catMargin.map(c=>{
+    const pct=Math.abs(c.margin)/mxMargin*100;
+    return '<div class="hbar-row"><div class="hbar-label">'+c.name+'</div><div class="hbar-track"><div class="hbar-fill" style="width:'+pct+'%;background:'+c.color+'"></div></div><div class="hbar-val">'+compact(c.margin)+'</div></div>';
+  }).join('')+'</div>':'<div class="empty-state"><p>Sin datos suficientes</p></div>';
+
+  // Payment method breakdown
+  const payLabels={efectivo:'Efectivo',debito:'Tarjeta debito',credito:'Tarjeta credito',transferencia:'Transferencia','':'Sin especificar'};
+  const byPay={};
+  sales.forEach(m=>{const k=m.payment||'';byPay[k]=(byPay[k]||0)+m.total});
+  const payEntries=Object.entries(byPay).sort((a,b)=>b[1]-a[1]);
+  $('paySubtitle').textContent=rangeLabel;
+  $('paymentList').innerHTML=payEntries.length?'<div style="padding:16px 20px">'+payEntries.map(([k,v])=>{
+    const pct=revenue>0?(v/revenue*100):0;
+    return '<div class="hbar-row"><div class="hbar-label">'+(payLabels[k]||k)+'</div><div class="hbar-track"><div class="hbar-fill" style="width:'+pct+'%;background:var(--brand-accent)"></div></div><div class="hbar-val">'+compact(v)+'</div></div>';
+  }).join('')+'</div>':'<div class="empty-state"><p>Sin ventas registradas</p></div>';
+}
+
+function renderTrendChart(sales){
+  const days=(!reportRange||reportRange>31)?Math.min(reportRange||90,90):reportRange;
+  const weekly=days>31;
+  const buckets=[];
+  if(!weekly){
+    for(let i=days-1;i>=0;i--){
+      const d=new Date(Date.now()-i*86400000);
+      const key=d.toISOString().slice(0,10);
+      buckets.push({key,label:d.toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit'}),total:0});
+    }
+    sales.forEach(m=>{
+      const key=m.time.slice(0,10);
+      const b=buckets.find(x=>x.key===key);
+      if(b)b.total+=m.total;
+    });
+  }else{
+    const weeks=Math.min(Math.ceil(days/7),16);
+    for(let i=weeks-1;i>=0;i--){
+      const end=new Date(Date.now()-i*7*86400000);
+      const start=new Date(end.getTime()-6*86400000);
+      buckets.push({start,end,label:start.toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit'}),total:0});
+    }
+    sales.forEach(m=>{
+      const t=new Date(m.time).getTime();
+      const b=buckets.find(x=>t>=x.start.getTime()&&t<=x.end.getTime()+86399999);
+      if(b)b.total+=m.total;
+    });
+  }
+  const mx=Math.max(...buckets.map(b=>b.total),1);
+  $('trendChart').innerHTML='<div class="trend-bars">'+buckets.map(b=>{
+    const pct=(b.total/mx)*100;
+    return '<div class="trend-col" onmouseenter="showTip(event,\''+b.label+'\',\''+fmtM(b.total)+'\')" onmousemove="moveTip(event)" onmouseleave="hideTip()"><div class="trend-bar-wrap"><div class="trend-bar" style="height:'+Math.max(pct,1)+'%"></div></div><div class="trend-label">'+b.label+'</div></div>';
+  }).join('')+'</div>';
+}
+
+function exportMovementsCSV(){
+  if(!movements.length){toast('No hay movimientos para exportar','error');return}
+  const hdr=['Fecha','Tipo','Producto','Cantidad','Precio unitario','Total','Metodo de pago','Cliente','Nota','Stock antes','Stock despues'];
+  const csvQ=s=>'"'+String(s||'').replace(/"/g,'""')+'"';
+  const typeLabels={venta:'Venta',ingreso:'Ingreso',merma:'Merma',ajuste:'Ajuste'};
+  const payLabels={efectivo:'Efectivo',debito:'Tarjeta debito',credito:'Tarjeta credito',transferencia:'Transferencia'};
+  const rows=movements.map(m=>[new Date(m.time).toLocaleString('es-CL'),typeLabels[m.type]||m.type,csvQ(m.productName),m.qty,m.unitPrice,m.total,payLabels[m.payment]||m.payment||'',csvQ(m.client),csvQ(m.note),m.stockBefore,m.stockAfter]);
+  const csv=[hdr.join(','),...rows.map(r=>r.join(','))].join('\n');
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='movimientos_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();URL.revokeObjectURL(a.href);
+  toast('Movimientos exportados a CSV');
+}
+
+/*===============================================================
+  EXPORT / IMPORT
+  ===============================================================*/
+function exportCSV(){
+  const f=filtered();
+  const h=['SKU','Producto','Categoria','Stock','Stock Minimo','Precio Compra','Precio Venta','Unidad','Ubicacion','Proveedor','Estado'];
+  const csvQ=s=>'"'+String(s).replace(/"/g,'""')+'"';
+  const rows=f.map(p=>[p.sku,csvQ(p.nombre),csvQ(cn(p.categoria)),p.stock,p.stockMin,p.pc,p.pv,p.u,csvQ(p.ub),csvQ(p.prov),ssLabel(ss(p))]);
+  const csv=[h.join(','),...rows.map(r=>r.join(','))].join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='inventario_avendano_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();URL.revokeObjectURL(a.href);
+  toast('CSV exportado correctamente');
+}
+
+function exportJSON(){
+  const data={
+    exportDate:new Date().toISOString(),
+    version:'4.1',
+    products:products,
+    movements:movements,
+    nextId:nxId,
+    mvId:mvId,
+    ticketId:ticketId,
+    actionLog:actionLog
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='inventario_'+(settings.storeName||'ferreteria').toLowerCase().replace(/[^a-z0-9]+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();URL.revokeObjectURL(a.href);
+  settings.lastBackupAt=new Date().toISOString();
+  persistSettings();
+  if($('backupStatus'))checkBackupReminder();
+  toast('Respaldo exportado correctamente');
+}
+
+function importJSON(e){
+  const file=e.target.files[0];if(!file)return;
+  const doImport=()=>{
+    const reader=new FileReader();
+    reader.onload=function(ev){
+      try{
+        const data=JSON.parse(ev.target.result);
+        if(!data.products||!Array.isArray(data.products))throw new Error('Formato invalido');
+        products=data.products;
+        nxId=data.nextId||data.nxId||Math.max(...products.map(p=>p.id))+1;
+        if(data.movements)movements=data.movements;
+        if(data.mvId)mvId=data.mvId;
+        if(data.ticketId)ticketId=data.ticketId;
+        if(data.actionLog)actionLog=data.actionLog;
+        logAction('add','<strong>Datos importados:</strong> '+products.length+' productos cargados','');
+        toast(products.length+' productos cargados correctamente');
+        saveData();
+        go(curView);
+      }catch(err){toast('Error al cargar: '+err.message,'error')}
+    };
+    reader.readAsText(file);
+  };
+  confirmModal('Restaurar respaldo','Esto reemplazara todos los datos actuales (productos y movimientos) con los del archivo. ¿Continuar?',doImport,'Restaurar');
+  e.target.value='';
+}
+
+/*===============================================================
+  CSV PRODUCT IMPORT
+  ===============================================================*/
+let importRows=[];
+function openImportModal(){
+  importRows=[];
+  $('importStep1').style.display='';
+  $('importStep2').style.display='none';
+  $('importFooter').innerHTML='<button class="btn btn-secondary" onclick="closeImportModal()">Cancelar</button>';
+  $('csvFileInput').value='';
+  $('importModal').classList.add('show');
+}
+function closeImportModal(){$('importModal').classList.remove('show')}
+
+function downloadCsvTemplate(){
+  const rows=['nombre,categoria,sku,stock,stockMin,pc,pv,unidad,ubicacion,proveedor',
+    'Cemento Ejemplo 25kg,mat,MAT-999,50,20,4900,6990,saco,Bodega principal,Proveedor Ejemplo'];
+  const blob=new Blob(['﻿'+rows.join('\n')],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='plantilla_productos.csv';a.click();URL.revokeObjectURL(a.href);
+}
+
+function parseCSV(text){
+  const lines=text.replace(/\r/g,'').split('\n').filter(l=>l.trim().length);
+  if(!lines.length)return[];
+  const splitLine=l=>{
+    const out=[];let cur='',inQ=false;
+    for(let i=0;i<l.length;i++){
+      const c=l[i];
+      if(c==='"'){inQ=!inQ}
+      else if(c===','&&!inQ){out.push(cur);cur=''}
+      else{cur+=c}
+    }
+    out.push(cur);
+    return out.map(s=>s.trim());
+  };
+  const headers=splitLine(lines[0]).map(h=>h.toLowerCase());
+  return lines.slice(1).map(l=>{
+    const vals=splitLine(l);
+    const o={};headers.forEach((h,i)=>o[h]=vals[i]!==undefined?vals[i]:'');
+    return o;
+  });
+}
+
+function matchCategory(raw){
+  if(!raw)return null;
+  const q=raw.trim().toLowerCase();
+  let c=CATS.find(c=>c.id.toLowerCase()===q);
+  if(c)return c.id;
+  c=CATS.find(c=>c.name.toLowerCase()===q);
+  if(c)return c.id;
+  c=CATS.find(c=>c.name.toLowerCase().includes(q)||q.includes(c.name.toLowerCase()));
+  return c?c.id:null;
+}
+
+function handleCsvFile(e){
+  const file=e.target.files[0];if(!file)return;
+  readCsvFile(file);
+}
+function handleCsvDrop(e){
+  e.preventDefault();
+  $('dropZone').classList.remove('drag');
+  const file=e.dataTransfer.files[0];if(!file)return;
+  if(!file.name.toLowerCase().endsWith('.csv')){toast('Arrastra un archivo con extension .csv','error');return}
+  readCsvFile(file);
+}
+function readCsvFile(file){
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const rows=parseCSV(ev.target.result);
+    if(!rows.length){toast('El archivo CSV esta vacio o no tiene datos','error');return}
+    processImportRows(rows);
+  };
+  reader.readAsText(file);
+}
+
+function processImportRows(rawRows){
+  const seenSkus=new Set();
+  importRows=rawRows.map((r,idx)=>{
+    const nombre=(r.nombre||'').trim();
+    const stock=parseInt(r.stock);
+    const stockMin=parseInt(r.stockmin);
+    const pv=parseInt(r.pv);
+    const pc=parseInt(r.pc)||0;
+    const sku=(r.sku||'').trim();
+    const catId=matchCategory(r.categoria)||CATS[0].id;
+    const errors=[];
+    if(!nombre)errors.push('Falta el nombre');
+    if(isNaN(stock)||stock<0)errors.push('Stock invalido');
+    if(isNaN(pv)||pv<=0)errors.push('Precio de venta invalido');
+    const existing=sku?products.find(p=>p.sku.toLowerCase()===sku.toLowerCase()):null;
+    if(sku&&!existing){
+      const skuKey=sku.toLowerCase();
+      if(seenSkus.has(skuKey))errors.push('SKU duplicado en el archivo (fila repetida)');
+      else seenSkus.add(skuKey);
+    }
+    return{
+      row:idx+2,nombre,categoria:catId,sku:sku||(catId.toUpperCase()+'-'+String(nxId+idx).padStart(3,'0')),
+      stock:isNaN(stock)?0:stock,stockMin:isNaN(stockMin)?Math.max(1,Math.round((isNaN(stock)?0:stock)*0.3)):stockMin,
+      pc,pv:isNaN(pv)?0:pv,u:(r.unidad||'unidad').trim()||'unidad',ub:(r.ubicacion||'Bodega principal').trim()||'Bodega principal',
+      prov:(r.proveedor||'').trim(),errors,isUpdate:!!existing,existingId:existing?existing.id:null
+    };
+  });
+  renderImportPreview();
+}
+
+function renderImportPreview(){
+  $('importStep1').style.display='none';
+  $('importStep2').style.display='';
+  const newC=importRows.filter(r=>!r.errors.length&&!r.isUpdate).length;
+  const updC=importRows.filter(r=>!r.errors.length&&r.isUpdate).length;
+  const errC=importRows.filter(r=>r.errors.length).length;
+  $('impNew').textContent=newC;$('impUpdate').textContent=updC;$('impError').textContent=errC;
+  $('importPreviewBody').innerHTML=importRows.map(r=>{
+    const cls=r.errors.length?'import-row-error':(r.isUpdate?'import-row-warn':'');
+    const status=r.errors.length?r.errors.join('; '):(r.isUpdate?'SKU existente: sumara '+r.stock+' al stock actual':'Nuevo producto');
+    return '<tr class="'+cls+'"><td>'+r.row+'</td><td>'+h(r.nombre||'—')+'</td><td>'+h(cn(r.categoria))+'</td><td>'+h(r.sku)+'</td><td>'+r.stock+'</td><td>'+fmtM(r.pv)+'</td><td>'+status+'</td></tr>';
+  }).join('');
+  const validCount=newC+updC;
+  $('importFooter').innerHTML='<button class="btn btn-secondary" onclick="closeImportModal()">Cancelar</button>'+
+    '<button class="btn btn-primary" onclick="applyImport()" '+(validCount?'':'disabled')+'>Cargar '+validCount+' producto'+(validCount!==1?'s':'')+'</button>';
+}
+
+function applyImport(){
+  let added=0,updated=0;
+  importRows.filter(r=>!r.errors.length).forEach(r=>{
+    if(r.isUpdate){
+      const p=products.find(x=>x.id===r.existingId);
+      if(p){p.stock+=r.stock;if(r.pv)p.pv=r.pv;if(r.pc)p.pc=r.pc;updated++}
+    }else{
+      products.push({id:nxId++,nombre:r.nombre,categoria:r.categoria,sku:r.sku,stock:r.stock,stockMin:r.stockMin,pc:r.pc,pv:r.pv,u:r.u,ub:r.ub,prov:r.prov});
+      added++;
+    }
+  });
+  logAction('add','<strong>Carga masiva CSV:</strong> '+added+' productos nuevos, '+updated+' actualizados','');
+  toast(added+' productos nuevos y '+updated+' actualizados','success');
+  closeImportModal();
+  renderInventory();updateBadge();
+  if(curView==='dashboard')renderDash();
+  saveData();
+}
+
+/*===============================================================
+  INIT
+  ===============================================================*/
+(function(){
+  // Load persisted data first
+  loadData();
+  loadSettings();
+  $('confirmOkBtn').addEventListener('click',onConfirmOkClick);
+
+  // Load saved theme
+  const savedTheme=localStorage.getItem('ferreteria_theme');
+  if(savedTheme)document.documentElement.setAttribute('data-theme',savedTheme);
+
+  const d=new Date();
+  $('headerDate').textContent=d.toLocaleDateString('es-CL',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  $('printDate').textContent=d.toLocaleDateString('es-CL',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const opts=CATS.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
+  $('catFilter').innerHTML='<option value="">Todas las categorias</option>'+opts;
+  $('fCat').innerHTML=opts;
+  const ubics=[...new Set(products.map(p=>p.ub))].sort();
+  $('ubicFilter').innerHTML='<option value="">Todas las ubicaciones</option>'+ubics.map(u=>'<option>'+u+'</option>').join('');
+
+  applySettings();
+
+  if(!settings.storeName){
+    $('setupOverlay').style.display='flex';
+    $('wizStoreName').focus();
+  }else{
+    renderDash();
+  }
+  updateSaveIndicator(true);
+
+  // Save theme on change
+  const origToggle=toggleTheme;
+  window.toggleTheme=function(){
+    origToggle();
+    localStorage.setItem('ferreteria_theme',document.documentElement.getAttribute('data-theme'));
+  };
+
+  // Global keyboard shortcuts
+  document.addEventListener('keydown',e=>{
+    const tag=(e.target.tagName||'').toLowerCase();
+    const typing=tag==='input'||tag==='textarea'||tag==='select'||e.target.isContentEditable;
+    if(e.key==='Escape'){
+      ['productModal','movementModal','confirmModal','importModal','shortcutsModal','cartModal'].forEach(id=>$(id).classList.remove('show'));
+      return;
+    }
+    if(typing)return;
+    const modalOpen=document.querySelector('.modal-overlay.show');
+    if(e.key==='/'&&!modalOpen){e.preventDefault();$('globalSearch').focus();}
+    else if((e.key==='n'||e.key==='N')&&!modalOpen){if(curView==='inventory')openAddModal();}
+    else if((e.key==='v'||e.key==='V')&&!modalOpen){openCartModal();}
+  });
+
+  // Close cart suggestions when clicking outside
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('.cart-search-wrap')){$('cartSuggestions').classList.remove('show')}
+  });
+
+  // PIN lock screen
+  if(settings.pinEnabled&&settings.pin){showLockScreen()}
+})();
+
+/*===============================================================
+  PIN LOCK SCREEN
+  ===============================================================*/
+let pinEntry='';
+function showLockScreen(){
+  $('lockLogo').innerHTML=settings.logo?'<img src="'+h(settings.logo)+'" style="width:100%;height:100%;object-fit:cover;border-radius:14px">':h(initials(settings.storeName));
+  pinEntry='';
+  renderPinDots();
+  $('pinKeypad').innerHTML=[1,2,3,4,5,6,7,8,9,'','0','del'].map(k=>{
+    if(k==='')return '<div></div>';
+    if(k==='del')return '<button class="pin-key" onclick="pinBackspace()">&#9003;</button>';
+    return '<button class="pin-key" onclick="pinPress('+k+')">'+k+'</button>';
+  }).join('');
+  $('lockOverlay').style.display='flex';
+}
+function renderPinDots(){
+  $('pinDots').innerHTML=[0,1,2,3].map(i=>'<div class="pin-dot'+(i<pinEntry.length?' filled':'')+'"></div>').join('');
+}
+function pinPress(d){
+  if(pinEntry.length>=4)return;
+  pinEntry+=String(d);
+  renderPinDots();
+  $('lockError').style.display='none';
+  if(pinEntry.length===4){
+    setTimeout(()=>{
+      if(pinEntry===settings.pin){
+        $('lockOverlay').style.display='none';
+      }else{
+        $('lockError').style.display='block';
+        pinEntry='';
+        renderPinDots();
+      }
+    },150);
+  }
+}
+function pinBackspace(){pinEntry=pinEntry.slice(0,-1);renderPinDots();$('lockError').style.display='none'}
+function lockNow(){if(settings.pinEnabled&&settings.pin)showLockScreen()}
+
+function finishSetupWizard(){
+  const name=$('wizStoreName').value.trim();
+  if(!name){$('errWizName').classList.add('show');$('wizStoreName').classList.add('error');return}
+  settings.storeName=name;
+  settings.phone=$('wizPhone').value.trim();
+  persistSettings();
+  applySettings();
+  $('setupOverlay').style.display='none';
+  renderDash();
+  toast('¡Bienvenido, '+name+'!');
+}
+</script>
+</body>
+</html>
