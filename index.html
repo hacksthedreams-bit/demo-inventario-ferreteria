@@ -479,8 +479,8 @@ body{display:flex;min-height:100vh;overflow-x:hidden;line-height:1.5}
 .cart-sugg-item .cs-name{font-weight:550}
 .cart-sugg-item .cs-meta{font-size:11.5px;color:var(--text-muted)}
 .cart-sugg-empty{padding:14px;text-align:center;font-size:12.5px;color:var(--text-muted)}
-.cart-table-wrap{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin-top:14px}
-.cart-table-wrap table{width:100%;border-collapse:collapse}
+.cart-table-wrap{border:1px solid var(--border);border-radius:var(--radius-sm);overflow-x:auto;margin-top:14px}
+.cart-table-wrap table{width:100%;min-width:460px;border-collapse:collapse}
 .cart-table-wrap th{text-align:left;padding:9px 12px;font-size:11px;font-weight:650;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;background:var(--surface-input);border-bottom:1px solid var(--border)}
 .cart-table-wrap td{padding:8px 12px;font-size:13px;border-bottom:1px solid var(--divider);vertical-align:middle}
 .cart-table-wrap tr:last-child td{border-bottom:none}
@@ -1304,7 +1304,7 @@ function closeShortcutsModal(){$('shortcutsModal').classList.remove('show')}
 /*===============================================================
   LOCALSTORAGE PERSISTENCE
   ===============================================================*/
-const STORAGE_KEY='ferreteria_avendano_v4';
+const STORAGE_KEY='ferreteria_inventario_v4';
 
 function saveData(){
   try{
@@ -2357,7 +2357,7 @@ function exportMovementsCSV(){
   const csvQ=s=>'"'+String(s||'').replace(/"/g,'""')+'"';
   const typeLabels={venta:'Venta',ingreso:'Ingreso',merma:'Merma',ajuste:'Ajuste'};
   const payLabels={efectivo:'Efectivo',debito:'Tarjeta debito',credito:'Tarjeta credito',transferencia:'Transferencia'};
-  const rows=movements.map(m=>[new Date(m.time).toLocaleString('es-CL'),typeLabels[m.type]||m.type,csvQ(m.productName),m.qty,m.unitPrice,m.total,payLabels[m.payment]||m.payment||'',csvQ(m.client),csvQ(m.note),m.stockBefore,m.stockAfter]);
+  const rows=movements.map(m=>[csvQ(new Date(m.time).toLocaleString('es-CL')),typeLabels[m.type]||m.type,csvQ(m.productName),m.qty,m.unitPrice,m.total,payLabels[m.payment]||m.payment||'',csvQ(m.client),csvQ(m.note),m.stockBefore,m.stockAfter]);
   const csv=[hdr.join(','),...rows.map(r=>r.join(','))].join('\n');
   const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
@@ -2373,11 +2373,11 @@ function exportCSV(){
   const f=filtered();
   const h=['SKU','Producto','Categoria','Stock','Stock Minimo','Precio Compra','Precio Venta','Unidad','Ubicacion','Proveedor','Estado'];
   const csvQ=s=>'"'+String(s).replace(/"/g,'""')+'"';
-  const rows=f.map(p=>[p.sku,csvQ(p.nombre),csvQ(cn(p.categoria)),p.stock,p.stockMin,p.pc,p.pv,p.u,csvQ(p.ub),csvQ(p.prov),ssLabel(ss(p))]);
+  const rows=f.map(p=>[csvQ(p.sku),csvQ(p.nombre),csvQ(cn(p.categoria)),p.stock,p.stockMin,p.pc,p.pv,p.u,csvQ(p.ub),csvQ(p.prov),ssLabel(ss(p))]);
   const csv=[h.join(','),...rows.map(r=>r.join(','))].join('\n');
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='inventario_avendano_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.download='inventario_'+(settings.storeName||'ferreteria').toLowerCase().replace(/[^a-z0-9]+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.csv';
   a.click();URL.revokeObjectURL(a.href);
   toast('CSV exportado correctamente');
 }
@@ -2514,7 +2514,10 @@ function processImportRows(rawRows){
     const pv=parseInt(r.pv);
     const pc=parseInt(r.pc)||0;
     const sku=(r.sku||'').trim();
-    const catId=matchCategory(r.categoria)||CATS[0].id;
+    const rawCat=(r.categoria||'').trim();
+    const matchedCat=matchCategory(rawCat);
+    const catId=matchedCat||CATS[0].id;
+    const catDefaulted=!matchedCat;
     const errors=[];
     if(!nombre)errors.push('Falta el nombre');
     if(isNaN(stock)||stock<0)errors.push('Stock invalido');
@@ -2529,7 +2532,7 @@ function processImportRows(rawRows){
       row:idx+2,nombre,categoria:catId,sku:sku||(catId.toUpperCase()+'-'+String(nxId+idx).padStart(3,'0')),
       stock:isNaN(stock)?0:stock,stockMin:isNaN(stockMin)?Math.max(1,Math.round((isNaN(stock)?0:stock)*0.3)):stockMin,
       pc,pv:isNaN(pv)?0:pv,u:(r.unidad||'unidad').trim()||'unidad',ub:(r.ubicacion||'Bodega principal').trim()||'Bodega principal',
-      prov:(r.proveedor||'').trim(),errors,isUpdate:!!existing,existingId:existing?existing.id:null
+      prov:(r.proveedor||'').trim(),errors,isUpdate:!!existing,existingId:existing?existing.id:null,catDefaulted,rawCat
     };
   });
   renderImportPreview();
@@ -2543,8 +2546,11 @@ function renderImportPreview(){
   const errC=importRows.filter(r=>r.errors.length).length;
   $('impNew').textContent=newC;$('impUpdate').textContent=updC;$('impError').textContent=errC;
   $('importPreviewBody').innerHTML=importRows.map(r=>{
-    const cls=r.errors.length?'import-row-error':(r.isUpdate?'import-row-warn':'');
-    const status=r.errors.length?r.errors.join('; '):(r.isUpdate?'SKU existente: sumara '+r.stock+' al stock actual':'Nuevo producto');
+    const cls=r.errors.length?'import-row-error':((r.isUpdate||r.catDefaulted)?'import-row-warn':'');
+    let status=r.errors.length?r.errors.join('; '):(r.isUpdate?'SKU existente: sumara '+r.stock+' al stock actual':'Nuevo producto');
+    if(!r.errors.length&&r.catDefaulted){
+      status+=' — categoria '+(r.rawCat?'"'+h(r.rawCat)+'" no reconocida':'no indicada')+', se uso "'+h(cn(r.categoria))+'" por defecto';
+    }
     return '<tr class="'+cls+'"><td>'+r.row+'</td><td>'+h(r.nombre||'—')+'</td><td>'+h(cn(r.categoria))+'</td><td>'+h(r.sku)+'</td><td>'+r.stock+'</td><td>'+fmtM(r.pv)+'</td><td>'+status+'</td></tr>';
   }).join('');
   const validCount=newC+updC;
